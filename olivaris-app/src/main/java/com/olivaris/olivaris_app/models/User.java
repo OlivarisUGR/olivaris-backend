@@ -73,6 +73,9 @@ public class User {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false)
+    private Boolean enabled;
+
     // This will generate a relationship table between user table and role table
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -84,7 +87,7 @@ public class User {
     private List<Role> roles;
 
     public User(String firstname, String lastname, String email, String password, 
-        String phone, List<Role> roles
+        String phone, List<Role> roles, Boolean enabled
     ) {
         this.firstname = firstname;
         this.lastname = lastname;
@@ -92,11 +95,6 @@ public class User {
         this.password = password;
         this.phone = phone;
         this.roles = roles;
-    }
-
-    public User(String firstname, String lastname, String email, String password, 
-        List<Role> roles
-    ) {
-        this(firstname, lastname, email, password, null, roles);
+        this.enabled = enabled;
     }
 }

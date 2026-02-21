@@ -2,10 +2,12 @@ package com.olivaris.olivaris_app.services;
 
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.olivaris.olivaris_app.dto.RegisterRequest;
+import com.olivaris.olivaris_app.dto.UserDto;
 import com.olivaris.olivaris_app.exceptions.UserAlreadyExistsException;
 import com.olivaris.olivaris_app.models.User;
 import com.olivaris.olivaris_app.repositories.UserRepository;
@@ -16,11 +18,11 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-    private UserRepository userRep;
-    private UserService userService;
+    private final UserRepository userRep;
+    private final UserService userService;
 
     @Override
-    public ResponseEntity<?> register(RegisterRequest request) {
+    public ResponseEntity<UserDto> register(RegisterRequest request) {
         // Check if the user exists on database
         Optional<User> userDb = userRep.findByEmail(request.getEmail());
 
@@ -31,9 +33,18 @@ public class AuthServiceImpl implements AuthService {
         // Register the user
         User newUser = userService.register(request);
 
-        // Create user dto and return it
+        // Create the user DTO and return it
+        String phone = newUser.getPhone() != null ? 
+                        newUser.getPhone() : "";
 
-        return null;
+        UserDto userDto = new UserDto(
+            newUser.getFirstname(),
+            newUser.getLastname(),
+            newUser.getEmail(),
+            phone
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
     }
 
 }

@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.olivaris.olivaris_app.dto.RegisterRequest;
+import com.olivaris.olivaris_app.dto.UserDto;
 import com.olivaris.olivaris_app.services.AuthService;
 
 import jakarta.validation.Valid;
@@ -22,7 +23,7 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<UserDto> register(@Valid @RequestBody RegisterRequest request) {
         return authService.register(request);
     }
     
