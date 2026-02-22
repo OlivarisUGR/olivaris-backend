@@ -1,15 +1,21 @@
 package com.olivaris.olivaris_app.services;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.olivaris.olivaris_app.dto.RegisterRequest;
 import com.olivaris.olivaris_app.dto.UserDto;
+import com.olivaris.olivaris_app.exceptions.ConfirmTokenNotExistsException;
+import com.olivaris.olivaris_app.exceptions.TokenExpiredException;
 import com.olivaris.olivaris_app.exceptions.UserAlreadyExistsException;
+import com.olivaris.olivaris_app.models.ConfirmationToken;
 import com.olivaris.olivaris_app.models.User;
+import com.olivaris.olivaris_app.repositories.ConfirmationTokenRepository;
 import com.olivaris.olivaris_app.repositories.UserRepository;
 
 import lombok.AllArgsConstructor;
@@ -20,7 +26,9 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRep;
     private final UserService userService;
+    private final ConfirmationTokenRepository tokenRep;
 
+    @Transactional
     @Override
     public ResponseEntity<UserDto> register(RegisterRequest request) {
         // Check if the user exists on database
@@ -41,6 +49,42 @@ public class AuthServiceImpl implements AuthService {
             newUser.getFirstname(),
             newUser.getLastname(),
             newUser.getEmail(),
+            phone
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
+    }
+
+    @Transactional
+    @Override
+    public ResponseEntity<UserDto> confirm(String confirmToken) {
+        // Check if the token exists
+        Optional<ConfirmationToken> optionalConfirmToken = tokenRep.findByToken(confirmToken);
+
+        if(optionalConfirmToken.isEmpty()) {
+            throw new ConfirmTokenNotExistsException(confirmToken);
+        }
+
+        // Check if token has not expires
+        ConfirmationToken token = optionalConfirmToken.get();
+
+        if(token.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new TokenExpiredException(confirmToken);
+        }
+
+        // Get the user from token and change the enabled value to true
+        User userDb = token.getUser();
+        userDb.setEnabled(true);
+        userRep.save(userDb);
+
+        // Create the user DTO and return it
+        String phone = userDb.getPhone() != null ? 
+                        userDb.getPhone() : "";
+
+        UserDto userDto = new UserDto(
+            userDb.getFirstname(),
+            userDb.getLastname(),
+            userDb.getEmail(),
             phone
         );
 

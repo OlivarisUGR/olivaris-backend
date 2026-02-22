@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.olivaris.olivaris_app.dto.ErrorDto;
+import com.olivaris.olivaris_app.exceptions.ConfirmTokenNotExistsException;
+import com.olivaris.olivaris_app.exceptions.MailSenderException;
+import com.olivaris.olivaris_app.exceptions.RoleNotExistsException;
+import com.olivaris.olivaris_app.exceptions.TokenExpiredException;
 import com.olivaris.olivaris_app.exceptions.UserAlreadyExistsException;
 
 @RestControllerAdvice
@@ -20,10 +24,46 @@ public class ErrorResponseHandler {
         ErrorDto error = new ErrorDto(
             "El usuario ya existe en la base de datos", 
             ex.getMessage(), 
-            HttpStatus.BAD_REQUEST.value()
+            HttpStatus.CONFLICT.value()
         );
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(MailSenderException.class)
+    public ResponseEntity<ErrorDto> mailSenderError(Exception ex) {
+        ErrorDto error = new ErrorDto(
+            "Error durante el envío del email de confirmación", 
+            ex.getMessage(), 
+            HttpStatus.INTERNAL_SERVER_ERROR.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    @ExceptionHandler({
+        ConfirmTokenNotExistsException.class,
+        RoleNotExistsException.class
+    })
+    public ResponseEntity<ErrorDto> entityNotExists(Exception ex) {
+        ErrorDto error = new ErrorDto(
+            "La entidad no existe en la base de datos", 
+            ex.getMessage(), 
+            HttpStatus.NOT_FOUND.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<ErrorDto> tokenExpired(Exception ex) {
+        ErrorDto error = new ErrorDto(
+            "El token ha expirado", 
+            ex.getMessage(), 
+            HttpStatus.GONE.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.GONE).body(error);
     }
 
     // This method will manage the validation from input request data

@@ -7,4 +7,5 @@ import com.olivaris.olivaris_app.dto.UserDto;
 
 public interface AuthService {
     ResponseEntity<UserDto> register(RegisterRequest request);
+    ResponseEntity<UserDto> confirm(String confirmToken);
 }
