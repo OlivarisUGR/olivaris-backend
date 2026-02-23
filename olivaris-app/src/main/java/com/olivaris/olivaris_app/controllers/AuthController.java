@@ -4,7 +4,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.olivaris.olivaris_app.dto.LoginRequest;
 import com.olivaris.olivaris_app.dto.RegisterRequest;
+import com.olivaris.olivaris_app.dto.TokenResponse;
 import com.olivaris.olivaris_app.dto.UserDto;
 import com.olivaris.olivaris_app.services.AuthService;
 
@@ -33,6 +35,12 @@ public class AuthController {
     public ResponseEntity<UserDto> confirm(@RequestParam String token) {
         return authService.confirm(token);
     }
+
+    @GetMapping("/login")
+    public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest request) {
+        return authService.login(request);
+    }
+    
 
 
 }

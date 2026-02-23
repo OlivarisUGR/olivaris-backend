@@ -5,15 +5,21 @@ import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.olivaris.olivaris_app.dto.LoginRequest;
 import com.olivaris.olivaris_app.dto.RegisterRequest;
+import com.olivaris.olivaris_app.dto.TokenResponse;
 import com.olivaris.olivaris_app.dto.UserDto;
 import com.olivaris.olivaris_app.exceptions.ConfirmTokenNotExistsException;
 import com.olivaris.olivaris_app.exceptions.TokenExpiredException;
 import com.olivaris.olivaris_app.exceptions.UserAlreadyExistsException;
 import com.olivaris.olivaris_app.models.ConfirmationToken;
+import com.olivaris.olivaris_app.models.CustomUserDetails;
 import com.olivaris.olivaris_app.models.User;
 import com.olivaris.olivaris_app.repositories.ConfirmationTokenRepository;
 import com.olivaris.olivaris_app.repositories.UserRepository;
@@ -27,6 +33,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRep;
     private final UserService userService;
     private final ConfirmationTokenRepository tokenRep;
+    private final AuthenticationManager authManager;
+    private final JwtService jwtService;
 
     @Transactional
     @Override
@@ -88,7 +96,36 @@ public class AuthServiceImpl implements AuthService {
             phone
         );
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userDto);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public ResponseEntity<TokenResponse> login(LoginRequest request) {
+        // Do an authentication for the user (info inside the request)
+        // SpringBoot will get the user from UserDetailsService and check 
+        // if the email and password are correct. If the user can not be
+        // authenticated, it will throw an exception
+        Authentication auth = authManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                request.getEmail(), 
+                request.getPassword()
+            )
+        );
+
+        CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
+
+        // Create the token and refresh token
+        String token = jwtService.createToken(user);
+        String refreshToken = jwtService.createRefreshToken(user);
+
+        // Create the token response and return it
+        TokenResponse tokenRes = new TokenResponse(
+            token, 
+            refreshToken
+        );
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(tokenRes);
     }
 
 }

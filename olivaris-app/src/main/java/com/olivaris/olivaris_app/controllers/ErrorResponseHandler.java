@@ -15,6 +15,7 @@ import com.olivaris.olivaris_app.exceptions.MailSenderException;
 import com.olivaris.olivaris_app.exceptions.RoleNotExistsException;
 import com.olivaris.olivaris_app.exceptions.TokenExpiredException;
 import com.olivaris.olivaris_app.exceptions.UserAlreadyExistsException;
+import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 
 @RestControllerAdvice
 public class ErrorResponseHandler {
@@ -43,7 +44,8 @@ public class ErrorResponseHandler {
 
     @ExceptionHandler({
         ConfirmTokenNotExistsException.class,
-        RoleNotExistsException.class
+        RoleNotExistsException.class,
+        UserNotFoundException.class
     })
     public ResponseEntity<ErrorDto> entityNotExists(Exception ex) {
         ErrorDto error = new ErrorDto(
