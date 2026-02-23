@@ -27,12 +27,12 @@ public class EmailServiceImpl implements EmailService {
     
     @Override
     @Async
-    public void sendEmail(String to, String url) {
+    public void sendEmail(String to, String url, String firstname) {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
 
-            helper.setText(emailBody(url), true);
+            helper.setText(emailBody(url, firstname), true);
             helper.setFrom(from != null ? from : "");
             helper.setTo(to != null ? to : "");
             helper.setSubject(EMAIL_SUBJECT);
@@ -42,7 +42,7 @@ public class EmailServiceImpl implements EmailService {
         }
     }
 
-    private String emailBody(String url) {
+    private String emailBody(String url, String firstname) {
         return """
             <!DOCTYPE html>
             <html lang="es">
@@ -64,7 +64,7 @@ public class EmailServiceImpl implements EmailService {
 
                                 <tr>
                                     <td style="padding: 30px; color:#333333;">
-                                        <p>Hola,</p>
+                                        <p>Hola, %s</p>
 
                                         <p>
                                             Gracias por registrarte. Para activar tu cuenta, por favor confirma tu
@@ -108,6 +108,6 @@ public class EmailServiceImpl implements EmailService {
                 </table>
             </body>
             </html>
-        """.formatted(url);
+        """.formatted(firstname, url);
     }
 }

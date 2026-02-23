@@ -6,15 +6,18 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.olivaris.olivaris_app.dto.ErrorDto;
+import com.olivaris.olivaris_app.exceptions.AuthHeaderNotValidException;
 import com.olivaris.olivaris_app.exceptions.ConfirmTokenNotExistsException;
 import com.olivaris.olivaris_app.exceptions.MailSenderException;
 import com.olivaris.olivaris_app.exceptions.RoleNotExistsException;
 import com.olivaris.olivaris_app.exceptions.TokenExpiredException;
 import com.olivaris.olivaris_app.exceptions.UserAlreadyExistsException;
+import com.olivaris.olivaris_app.exceptions.UserNotEnabledException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 
 @RestControllerAdvice
@@ -66,6 +69,38 @@ public class ErrorResponseHandler {
         );
 
         return ResponseEntity.status(HttpStatus.GONE).body(error);
+    }
+
+    @ExceptionHandler(UserNotEnabledException.class)
+    public ResponseEntity<ErrorDto> notEnabled(Exception ex) {
+        ErrorDto error = new ErrorDto(
+            "Error en el registro de usuario", 
+            ex.getMessage(), 
+            HttpStatus.FORBIDDEN.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+    
+    @ExceptionHandler(AuthHeaderNotValidException.class)
+    public ResponseEntity<ErrorDto> authHeaderNotValid(Exception ex) {
+        ErrorDto error = new ErrorDto(
+            "Error en la cabecera de autorización", 
+            ex.getMessage(), 
+            HttpStatus.UNAUTHORIZED.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    public ResponseEntity<ErrorDto> handleMissingHeader(MissingRequestHeaderException ex) {
+        ErrorDto error = new ErrorDto(
+            "Error en la cabecera de autorización",
+            "Falta la cabecera Authorization",
+            HttpStatus.UNAUTHORIZED.value()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     // This method will manage the validation from input request data

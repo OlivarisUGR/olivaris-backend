@@ -15,9 +15,12 @@ import com.olivaris.olivaris_app.dto.LoginRequest;
 import com.olivaris.olivaris_app.dto.RegisterRequest;
 import com.olivaris.olivaris_app.dto.TokenResponse;
 import com.olivaris.olivaris_app.dto.UserDto;
+import com.olivaris.olivaris_app.exceptions.AuthHeaderNotValidException;
 import com.olivaris.olivaris_app.exceptions.ConfirmTokenNotExistsException;
 import com.olivaris.olivaris_app.exceptions.TokenExpiredException;
 import com.olivaris.olivaris_app.exceptions.UserAlreadyExistsException;
+import com.olivaris.olivaris_app.exceptions.UserNotEnabledException;
+import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 import com.olivaris.olivaris_app.models.ConfirmationToken;
 import com.olivaris.olivaris_app.models.CustomUserDetails;
 import com.olivaris.olivaris_app.models.User;
@@ -115,9 +118,14 @@ public class AuthServiceImpl implements AuthService {
 
         CustomUserDetails user = (CustomUserDetails) auth.getPrincipal();
 
+        // Check if the user is enabled (confirmed register)
+        if(!user.isEnabled()) {
+            throw new UserNotEnabledException(user.getUsername());
+        }
+
         // Create the token and refresh token
-        String token = jwtService.createToken(user);
-        String refreshToken = jwtService.createRefreshToken(user);
+        String token = jwtService.createToken(user.getUser());
+        String refreshToken = jwtService.createRefreshToken(user.getUser());
 
         // Create the token response and return it
         TokenResponse tokenRes = new TokenResponse(
@@ -125,7 +133,39 @@ public class AuthServiceImpl implements AuthService {
             refreshToken
         );
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(tokenRes);
+        return ResponseEntity.status(HttpStatus.CREATED).body(tokenRes);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public ResponseEntity<TokenResponse> refresh(String authHeader) {
+        if(authHeader == null || !authHeader.contains("Bearer ")) {
+            throw new AuthHeaderNotValidException("Error en la cabecera de la petición");
+        }
+
+        // Get the user and check if exists
+        String refreshToken = authHeader.substring(7);
+        String userEmail = jwtService.extractUsername(refreshToken);
+        
+        if(userEmail == null) {
+            throw new TokenExpiredException(refreshToken);
+        }
+
+        User userDb = userRep.findByEmail(userEmail)
+                            .orElseThrow(() -> new UserNotFoundException(userEmail));
+
+        // Check if the token is valid
+        if(!jwtService.isValid(refreshToken, userDb)) {
+            throw new TokenExpiredException(refreshToken);
+        }
+
+        // Create the token and refresh token
+        TokenResponse newTokens = new TokenResponse(
+            jwtService.createToken(userDb), 
+            jwtService.createRefreshToken(userDb)
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(newTokens);
     }
 
 }

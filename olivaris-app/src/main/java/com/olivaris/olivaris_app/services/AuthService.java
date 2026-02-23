@@ -11,4 +11,5 @@ public interface AuthService {
     ResponseEntity<UserDto> register(RegisterRequest request);
     ResponseEntity<UserDto> confirm(String confirmToken);
     ResponseEntity<TokenResponse> login(LoginRequest request);
+    ResponseEntity<TokenResponse> refresh(String authHeader);
 }

@@ -35,13 +35,14 @@ public class UserServiceImpl implements UserService{
 
     // Using this constructor because @Value does not injected automatically by Springboot
     // if @AllArgsConstructor is used
-    public UserServiceImpl(UserRepository userRep,
-                            ConfirmationTokenRepository confirmTokenRep,
-                            @Value("${confirmation-token.expiration-hours}") Long confirmTokenExpiresHours,
-                            PasswordEncoder passwordEncoder,
-                            EmailService emailService,
-                            @Value("${spring.mail.urlServerHost}") String urlMailHost,
-                            RoleRepository roleRep
+    public UserServiceImpl(
+        UserRepository userRep,
+        ConfirmationTokenRepository confirmTokenRep,
+        @Value("${confirmation-token.expiration-hours}") Long confirmTokenExpiresHours,
+        PasswordEncoder passwordEncoder,
+        EmailService emailService,
+        @Value("${spring.mail.urlServerHost}") String urlMailHost,
+        RoleRepository roleRep
     ) {
         this.userRep = userRep;
         this.confirmTokenRep = confirmTokenRep;
@@ -89,7 +90,7 @@ public class UserServiceImpl implements UserService{
 
         // Send the email confirmation
         String url = urlMailHost + token;
-        emailService.sendEmail(savedUser.getEmail(), url);
+        emailService.sendEmail(savedUser.getEmail(), url, savedUser.getFirstname());
 
         return savedUser;
     }

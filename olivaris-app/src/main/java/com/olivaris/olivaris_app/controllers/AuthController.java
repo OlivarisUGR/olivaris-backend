@@ -13,10 +13,12 @@ import com.olivaris.olivaris_app.services.AuthService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 
 @RestController
@@ -36,11 +38,15 @@ public class AuthController {
         return authService.confirm(token);
     }
 
-    @GetMapping("/login")
-    public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest request) {
+    @PostMapping("/login")
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
     }
     
-
-
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponse> refresh(
+        @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader
+    ) {
+        return authService.refresh(authHeader);
+    }
 }
