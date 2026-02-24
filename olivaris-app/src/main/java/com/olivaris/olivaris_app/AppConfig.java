@@ -21,7 +21,7 @@ public class AppConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // Component to authenticate the user during a login
+    // This component will allow authenticate an user
     @Bean
     public AuthenticationManager authManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();

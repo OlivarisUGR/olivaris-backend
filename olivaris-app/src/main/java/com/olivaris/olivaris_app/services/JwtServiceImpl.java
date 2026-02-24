@@ -36,7 +36,10 @@ public class JwtServiceImpl implements JwtService {
     public String buildToken(User user, Long expiration) {
         return Jwts.builder()
                 .id(user.getId().toString())
-                .claims(Map.of("firstname", user.getFirstname()))
+                .claims(Map.of(
+                    "firstname", user.getFirstname(),
+                    "userId", user.getId()
+                ))
                 .subject(user.getEmail())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration))

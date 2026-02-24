@@ -3,14 +3,17 @@ package com.olivaris.olivaris_app.controllers;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.olivaris.olivaris_app.dto.ErrorDto;
+import com.olivaris.olivaris_app.exceptions.AccessDeniedException;
 import com.olivaris.olivaris_app.exceptions.AuthHeaderNotValidException;
 import com.olivaris.olivaris_app.exceptions.ConfirmTokenNotExistsException;
 import com.olivaris.olivaris_app.exceptions.MailSenderException;
@@ -27,6 +30,28 @@ public class ErrorResponseHandler {
     public ResponseEntity<ErrorDto> userExists(Exception ex) {
         ErrorDto error = new ErrorDto(
             "El usuario ya existe en la base de datos", 
+            ex.getMessage(), 
+            HttpStatus.CONFLICT.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorDto> integrityViolation(Exception ex) {
+        ErrorDto error = new ErrorDto(
+            "Error al ejecutar una operación SQL", 
+            ex.getMessage(), 
+            HttpStatus.CONFLICT.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+    
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorDto> messageNotReadable(Exception ex) {
+        ErrorDto error = new ErrorDto(
+            "Error en la lectura del mensaje", 
             ex.getMessage(), 
             HttpStatus.CONFLICT.value()
         );
@@ -98,6 +123,16 @@ public class ErrorResponseHandler {
         ErrorDto error = new ErrorDto(
             "Error en la cabecera de autorización",
             "Falta la cabecera Authorization",
+            HttpStatus.UNAUTHORIZED.value()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorDto> accessDenied(Exception ex) {
+        ErrorDto error = new ErrorDto(
+            "Accesso denegado al servicio",
+            ex.getMessage(),
             HttpStatus.UNAUTHORIZED.value()
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);

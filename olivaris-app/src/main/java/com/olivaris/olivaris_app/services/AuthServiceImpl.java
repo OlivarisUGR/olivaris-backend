@@ -52,16 +52,8 @@ public class AuthServiceImpl implements AuthService {
         // Register the user
         User newUser = userService.register(request);
 
-        // Create the user DTO and return it
-        String phone = newUser.getPhone() != null ? 
-                        newUser.getPhone() : "";
-
-        UserDto userDto = new UserDto(
-            newUser.getFirstname(),
-            newUser.getLastname(),
-            newUser.getEmail(),
-            phone
-        );
+        // Create the user DTO 
+        UserDto userDto = UserDto.fromEntity(newUser);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
     }
@@ -88,16 +80,8 @@ public class AuthServiceImpl implements AuthService {
         userDb.setEnabled(true);
         userRep.save(userDb);
 
-        // Create the user DTO and return it
-        String phone = userDb.getPhone() != null ? 
-                        userDb.getPhone() : "";
-
-        UserDto userDto = new UserDto(
-            userDb.getFirstname(),
-            userDb.getLastname(),
-            userDb.getEmail(),
-            phone
-        );
+        // Create the user DTO 
+        UserDto userDto = UserDto.fromEntity(userDb);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(userDto);
     }

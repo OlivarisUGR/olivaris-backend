@@ -1,5 +1,9 @@
 package com.olivaris.olivaris_app.dto;
 
+import java.util.List;
+
+import com.olivaris.olivaris_app.models.enums.RoleTypes;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -30,4 +34,6 @@ public class RegisterRequest {
     
     @Pattern(regexp = "\\+?[0-9]{7,15}", message = "{user.phone.invalid}")
     private String phone;
+
+    private List<RoleTypes> roles;
 }
