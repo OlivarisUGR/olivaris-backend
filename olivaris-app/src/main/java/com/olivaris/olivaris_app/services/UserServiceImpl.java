@@ -9,13 +9,13 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.olivaris.olivaris_app.dto.RegisterRequest;
 import com.olivaris.olivaris_app.dto.UserDto;
-import com.olivaris.olivaris_app.exceptions.AccessDeniedException;
 import com.olivaris.olivaris_app.exceptions.RoleNotExistsException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 import com.olivaris.olivaris_app.models.ConfirmationToken;
@@ -25,7 +25,6 @@ import com.olivaris.olivaris_app.models.enums.RoleTypes;
 import com.olivaris.olivaris_app.repositories.ConfirmationTokenRepository;
 import com.olivaris.olivaris_app.repositories.RoleRepository;
 import com.olivaris.olivaris_app.repositories.UserRepository;
-import com.olivaris.olivaris_app.security.SecurityUtils;
 
 
 @Service
@@ -108,31 +107,8 @@ public class UserServiceImpl implements UserService{
 
     @Transactional
     @Override
+    @PreAuthorize("@userSecurityValidator.canCreateUser(#request)")
     public ResponseEntity<UserDto> create(RegisterRequest request) {
-        // Only admin can create others admin
-        if(SecurityUtils.requestHasRole(request.getRoles(), RoleTypes.ROLE_ADMIN) &&
-            !SecurityUtils.currentUserHasRole(RoleTypes.ROLE_ADMIN)) {
-                throw new AccessDeniedException("Solo administradores pueden crear otros admins");
-        }
-
-        // Only cooper admin or admin can create others cooper admin
-        if(SecurityUtils.requestHasRole(request.getRoles(), RoleTypes.ROLE_COOPER_ADMIN) &&
-            !SecurityUtils.currentUserHasRole(RoleTypes.ROLE_ADMIN) &&
-                !SecurityUtils.currentUserHasRole(RoleTypes.ROLE_COOPER_ADMIN)) {
-                    throw new AccessDeniedException(
-                        "Solo admins de cooperativa o admins pueden crear otros admins de cooperativa"
-                    );
-        }
-
-        // Only farmer cand be created by admin or cooper admin
-        if(SecurityUtils.requestHasRole(request.getRoles(), RoleTypes.ROLE_FARMER) &&
-            !SecurityUtils.currentUserHasRole(RoleTypes.ROLE_ADMIN) &&
-                !SecurityUtils.currentUserHasRole(RoleTypes.ROLE_COOPER_ADMIN)) {
-                    throw new AccessDeniedException(
-                        "Solo admins y admins de cooperativa pueden crear agricultores"
-                );
-        }
-
         // Create the user and saved him on database
         String phone = request.getPhone() != null ? 
                             request.getPhone() : null;
@@ -160,15 +136,12 @@ public class UserServiceImpl implements UserService{
 
     @Transactional
     @Override
+    @PreAuthorize("@userSecurityValidator.canDeleteUser(#id)")
     public ResponseEntity<Void> delete(Long id) {
-        User userDb = userRep.findById(id)
+        User userToDelete = userRep.findById(id)
                         .orElseThrow(() -> new UserNotFoundException(id.toString()));
-
-        // TODO: no eliminarme a mi mismo, si soy agricultor no puedo eliminar a nadie, si soy cooper admin
-        // solo puedo eliminar a otro cooper admin o agricultor, si soy admin puedo eliminar a cualquiera
-            
                         
-        userRep.delete(userDb);
+        userRep.delete(userToDelete);
 
         return ResponseEntity.noContent().build();
     }
