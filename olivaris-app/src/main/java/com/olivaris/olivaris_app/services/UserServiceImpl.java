@@ -67,17 +67,12 @@ public class UserServiceImpl implements UserService{
         List<Role> roles = new ArrayList<>();
         
         // Find the role user and save on the list
-        Optional<Role> optionalRole = roleRep.findByName(RoleTypes.ROLE_ADMIN.toString());
+        Optional<Role> optionalRole = roleRep.findByName(RoleTypes.ROLE_FARMER.toString());
 
         if(optionalRole.isEmpty()) {
-            throw new RoleNotExistsException(RoleTypes.ROLE_ADMIN.toString());
+            throw new RoleNotExistsException(RoleTypes.ROLE_FARMER.toString());
         }
 
-        roles.add(optionalRole.get());
-
-        optionalRole = roleRep.findByName(RoleTypes.ROLE_COOPER_ADMIN.toString());
-        roles.add(optionalRole.get());
-        optionalRole = roleRep.findByName(RoleTypes.ROLE_FARMER.toString());
         roles.add(optionalRole.get());
 
         User newUser = new User(
