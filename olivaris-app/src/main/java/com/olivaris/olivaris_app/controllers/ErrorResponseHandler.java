@@ -23,6 +23,8 @@ import com.olivaris.olivaris_app.exceptions.UserAlreadyExistsException;
 import com.olivaris.olivaris_app.exceptions.UserNotEnabledException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 
+import io.jsonwebtoken.ExpiredJwtException;
+
 @RestControllerAdvice
 public class ErrorResponseHandler {
 
@@ -128,7 +130,10 @@ public class ErrorResponseHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
-    @ExceptionHandler(AccessDeniedException.class)
+    @ExceptionHandler({
+        AccessDeniedException.class,
+        ExpiredJwtException.class
+    })
     public ResponseEntity<ErrorDto> accessDenied(Exception ex) {
         ErrorDto error = new ErrorDto(
             "Accesso denegado al servicio",

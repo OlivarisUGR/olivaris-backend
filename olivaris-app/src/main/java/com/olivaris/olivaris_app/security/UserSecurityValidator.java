@@ -66,14 +66,11 @@ public class UserSecurityValidator {
         }
 
         // Cooper admin can be deleted by other cooper admin or admin
-        if(deleteUserRoles.contains(RoleTypes.ROLE_COOPER_ADMIN.toString())) {
+        // Farmer can be deleted by admin or cooper admin; not by other farmer
+        if(deleteUserRoles.contains(RoleTypes.ROLE_COOPER_ADMIN.toString()) ||
+            deleteUserRoles.contains(RoleTypes.ROLE_FARMER.toString())) {
             return this.currentUserHasRole(RoleTypes.ROLE_ADMIN) || 
                    this.currentUserHasRole(RoleTypes.ROLE_COOPER_ADMIN); 
-        }
-
-        // Farmer can be deleted by admin or cooper admin; not by other farmer
-        if(deleteUserRoles.contains(RoleTypes.ROLE_FARMER.toString())) {
-            return !this.currentUserHasRole(RoleTypes.ROLE_FARMER);
         }
         
         return true;
