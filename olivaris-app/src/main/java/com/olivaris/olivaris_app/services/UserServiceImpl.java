@@ -75,6 +75,12 @@ public class UserServiceImpl implements UserService{
 
         roles.add(optionalRole.get());
 
+        // Create an admin (TODO: add a script)
+        // optionalRole = roleRep.findByName(RoleTypes.ROLE_ADMIN.toString());
+        // roles.add(optionalRole.get());
+        // optionalRole = roleRep.findByName(RoleTypes.ROLE_ENTITY_ADMIN.toString());
+        // roles.add(optionalRole.get());
+
         User newUser = new User(
             request.getFirstname(),
             request.getLastname(),
@@ -82,7 +88,8 @@ public class UserServiceImpl implements UserService{
             passwordEncoder.encode(request.getPassword()),
             phone,
             roles,
-            false
+            false,
+            request.getNif()
         );
 
         User savedUser = userRep.save(newUser);
@@ -120,7 +127,8 @@ public class UserServiceImpl implements UserService{
             passwordEncoder.encode(request.getPassword()),
             phone,
             roles,
-            true
+            true,
+            request.getNif()
         );
 
         User savedUser = userRep.save(newUser);

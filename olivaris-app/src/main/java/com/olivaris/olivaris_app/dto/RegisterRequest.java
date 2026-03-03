@@ -35,5 +35,9 @@ public class RegisterRequest {
     @Pattern(regexp = "\\+?[0-9]{7,15}", message = "{user.phone.invalid}")
     private String phone;
 
+    @NotBlank(message = "{user.nif.notblank}")
+    @Pattern(regexp = "^[0-9]{8}[A-Z]$")
+    private String nif;
+
     private List<RoleTypes> roles;
 }

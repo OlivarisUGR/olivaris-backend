@@ -19,6 +19,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
@@ -63,6 +64,11 @@ public class User {
     @Pattern(regexp = "\\+?[0-9]{7,15}", message = "{user.phone.invalid}")
     private String phone;
 
+    @NotBlank(message = "{user.nif.notblank}")
+    @Pattern(regexp = "^[0-9]{8}[A-Z]$", message = "{user.nif.invalid}")
+    @Column(unique = true, nullable = false)
+    private String nif;
+
     // Hibernate will create and inserted the value automatically
     @CreationTimestamp
     @Column(updatable = false, nullable = false)
@@ -91,8 +97,11 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private ConfirmationToken confirmationToken;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserEntityRole> userEntity;
+
     public User(String firstname, String lastname, String email, String password, 
-        String phone, List<Role> roles, Boolean enabled
+        String phone, List<Role> roles, Boolean enabled, String nif
     ) {
         this.firstname = firstname;
         this.lastname = lastname;
@@ -101,5 +110,6 @@ public class User {
         this.phone = phone;
         this.roles = roles;
         this.enabled = enabled;
+        this.nif = nif;
     }
 }

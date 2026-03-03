@@ -22,6 +22,7 @@ public class UserDto {
     private String phone;
     private Boolean enabled;
     private List<Role> roles;
+    private String nif;
 
     public static UserDto fromEntity(User user) {
         UserDto dto = new UserDto(
@@ -31,7 +32,8 @@ public class UserDto {
             user.getEmail(),
             user.getPhone() != null ? user.getPhone() : "",
             user.getEnabled(),
-            user.getRoles()
+            user.getRoles(),
+            user.getNif()
         );
         
         return dto;

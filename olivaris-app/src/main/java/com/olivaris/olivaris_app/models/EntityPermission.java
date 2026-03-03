@@ -10,25 +10,23 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 @Entity
-@Table(name = "role")
+@Table(name = "entity_permission")
+@NoArgsConstructor
 @Getter
 @Setter
-@ToString
-@NoArgsConstructor
-public class Role {
+public class EntityPermission {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "{role.name.notblank}")
-    @Column(unique = true)
+    @NotBlank(message = "{entity.permission.notblank}")
+    @Column(unique = true, nullable = false)
     private String name;
 
-    public Role(String name) {
+    public EntityPermission(String name) {
         this.name = name;
     }
 }

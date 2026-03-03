@@ -29,7 +29,7 @@ public class UserSecurityValidator {
 
     public boolean canCreateUser(RegisterRequest request) {
         boolean creatingAdmin = this.requestHasRole(request.getRoles(), RoleTypes.ROLE_ADMIN);
-        boolean creatingCooperAdmin = this.requestHasRole(request.getRoles(), RoleTypes.ROLE_COOPER_ADMIN);
+        boolean creatingCooperAdmin = this.requestHasRole(request.getRoles(), RoleTypes.ROLE_ENTITY_ADMIN);
         boolean creatingFarmer = this.requestHasRole(request.getRoles(), RoleTypes.ROLE_FARMER);
 
         if(creatingAdmin) {
@@ -38,7 +38,7 @@ public class UserSecurityValidator {
 
         if(creatingCooperAdmin || creatingFarmer) {
             return this.currentUserHasRole(RoleTypes.ROLE_ADMIN) || 
-                   this.currentUserHasRole(RoleTypes.ROLE_COOPER_ADMIN);
+                   this.currentUserHasRole(RoleTypes.ROLE_ENTITY_ADMIN);
         }
 
         return true;
@@ -67,10 +67,10 @@ public class UserSecurityValidator {
 
         // Cooper admin can be deleted by other cooper admin or admin
         // Farmer can be deleted by admin or cooper admin; not by other farmer
-        if(deleteUserRoles.contains(RoleTypes.ROLE_COOPER_ADMIN.toString()) ||
+        if(deleteUserRoles.contains(RoleTypes.ROLE_ENTITY_ADMIN.toString()) ||
             deleteUserRoles.contains(RoleTypes.ROLE_FARMER.toString())) {
             return this.currentUserHasRole(RoleTypes.ROLE_ADMIN) || 
-                   this.currentUserHasRole(RoleTypes.ROLE_COOPER_ADMIN); 
+                   this.currentUserHasRole(RoleTypes.ROLE_ENTITY_ADMIN); 
         }
         
         return true;
