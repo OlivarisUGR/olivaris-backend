@@ -33,7 +33,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(request -> request
                 // Allow all requests to auth endpoints
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/user/**").hasAnyRole("ADMIN", "COOPER_ADMIN")
+                .requestMatchers("/api/user/**").hasAnyRole("ADMIN", "ENTITY_ADMIN")
+                .requestMatchers("/api/entity/").hasRole("ADMIN")
+                .requestMatchers("/api/entity/{entityId}/**").hasAnyRole("ADMIN", "ENTITY_ADMIN")
                 .anyRequest()
                 .authenticated()
             )

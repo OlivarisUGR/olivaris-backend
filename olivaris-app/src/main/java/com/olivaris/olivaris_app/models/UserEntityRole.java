@@ -44,8 +44,8 @@ public class UserEntityRole {
     @JoinTable(
         name = "user_entity_permission",
         joinColumns = {
-            @JoinColumn(name = "user_id", nullable = false),
-            @JoinColumn(name = "enabled_entity_id", nullable = false)
+            @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false),
+            @JoinColumn(name = "enabled_entity_id", referencedColumnName = "enabled_entity_id", nullable = false)
         },
         inverseJoinColumns = @JoinColumn(name = "entity_permission_id", nullable = false),
         uniqueConstraints = { 

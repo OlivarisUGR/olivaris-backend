@@ -24,6 +24,7 @@ import com.olivaris.olivaris_app.exceptions.UserNotEnabledException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.persistence.EntityNotFoundException;
 
 @RestControllerAdvice
 public class ErrorResponseHandler {
@@ -75,7 +76,8 @@ public class ErrorResponseHandler {
     @ExceptionHandler({
         ConfirmTokenNotExistsException.class,
         RoleNotExistsException.class,
-        UserNotFoundException.class
+        UserNotFoundException.class,
+        EntityNotFoundException.class
     })
     public ResponseEntity<ErrorDto> entityNotExists(Exception ex) {
         ErrorDto error = new ErrorDto(
