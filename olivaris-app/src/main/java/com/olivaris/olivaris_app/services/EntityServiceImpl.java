@@ -20,7 +20,6 @@ import com.olivaris.olivaris_app.models.EntityPermission;
 import com.olivaris.olivaris_app.models.EntityRole;
 import com.olivaris.olivaris_app.models.User;
 import com.olivaris.olivaris_app.models.UserEntityRole;
-import com.olivaris.olivaris_app.models.UserEntityRoleId;
 import com.olivaris.olivaris_app.repositories.EntityPermissionRepository;
 import com.olivaris.olivaris_app.repositories.EntityRepository;
 import com.olivaris.olivaris_app.repositories.EntityRoleRepository;
@@ -108,8 +107,7 @@ public class EntityServiceImpl implements EntityService {
         Long userId, 
         UpdateUserEntity body
     ) {
-        UserEntityRoleId userEntityRoleId = new UserEntityRoleId(userId, entityId);
-        UserEntityRole userEntityRoleDb = userEntityRoleRep.findById(userEntityRoleId)
+        UserEntityRole userEntityRoleDb = userEntityRoleRep.findByUserIdAndEnabledEntityId(userId, entityId)
                                     .orElseThrow(() -> new EntityNotFoundException(
                                     "La relación entre usuario y entidad no existe en la base de datos"
                                     )); 
