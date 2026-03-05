@@ -36,7 +36,7 @@ public class EntityController {
         @PathVariable Long userId,
         @Valid @RequestBody CreateUserEntity body
     ) {
-        return entityServ.assignUserToEntity(entityId, userId, body);
+        return entityServ.createAssignment(entityId, userId, body);
     }
 
     @PutMapping("/{entityId}/user/{userId}")

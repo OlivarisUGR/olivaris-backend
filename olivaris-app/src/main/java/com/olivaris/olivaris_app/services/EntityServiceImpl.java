@@ -47,7 +47,7 @@ public class EntityServiceImpl implements EntityService {
             request.getNif(),
             request.getPhone() == null ? null : request.getPhone(),
             request.getEmail(),
-            request.getActive()
+            true
         );
 
         EnabledEntity entityDb = entityRep.save(newEntity);
@@ -58,7 +58,18 @@ public class EntityServiceImpl implements EntityService {
     @Transactional
     @Override
     @PreAuthorize("@entityValidator.canCreateUpdateAssignment(#entityId)")
-    public ResponseEntity<UserEntityDto> assignUserToEntity(
+    public ResponseEntity<UserEntityDto> createAssignment(
+        Long entityId, 
+        Long userId, 
+        CreateUserEntity body
+    ) {
+        UserEntityDto userEntityDto = this.assignUserToEntity(entityId, userId, body);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userEntityDto);
+    }
+
+    @Transactional
+    @Override
+    public UserEntityDto assignUserToEntity(
         Long entityId, 
         Long userId, 
         CreateUserEntity body
@@ -96,7 +107,7 @@ public class EntityServiceImpl implements EntityService {
 
         UserEntityRole userEntityRoleDb = userEntityRoleRep.save(newUserEntityRole);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(UserEntityDto.fromEntity(userEntityRoleDb));
+        return UserEntityDto.fromEntity(userEntityRoleDb);
     }
 
     @Transactional

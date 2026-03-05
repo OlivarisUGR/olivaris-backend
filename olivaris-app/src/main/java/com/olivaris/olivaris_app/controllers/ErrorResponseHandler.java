@@ -16,6 +16,7 @@ import com.olivaris.olivaris_app.dto.ErrorDto;
 import com.olivaris.olivaris_app.exceptions.AccessDeniedException;
 import com.olivaris.olivaris_app.exceptions.AuthHeaderNotValidException;
 import com.olivaris.olivaris_app.exceptions.ConfirmTokenNotExistsException;
+import com.olivaris.olivaris_app.exceptions.FieldIsNecessaryException;
 import com.olivaris.olivaris_app.exceptions.MailSenderException;
 import com.olivaris.olivaris_app.exceptions.RoleNotExistsException;
 import com.olivaris.olivaris_app.exceptions.TokenExpiredException;
@@ -142,6 +143,17 @@ public class ErrorResponseHandler {
             ex.getMessage(),
             HttpStatus.UNAUTHORIZED.value()
         );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    @ExceptionHandler(FieldIsNecessaryException.class)
+    public ResponseEntity<ErrorDto> fieldIsNecessary(Exception ex) {
+        ErrorDto error = new ErrorDto(
+            "Campo necesario en el body de la petición", 
+            ex.getMessage(), 
+            HttpStatus.UNAUTHORIZED.value()
+        );
+
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 

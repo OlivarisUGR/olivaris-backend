@@ -25,6 +25,4 @@ public class CreateEntity {
     @NotBlank(message = "{entity.email.notblank}")
     @Email(message = "{entity.email.invalid}")
     private String email;
-
-    private Boolean active;
 }

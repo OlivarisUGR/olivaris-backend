@@ -38,6 +38,14 @@ public class AuthController {
         return authService.confirm(token);
     }
 
+    @GetMapping("/confirmEntityAdmin")
+    public ResponseEntity<UserDto> confirmEntityAdmin(
+        @RequestParam String token,
+        @RequestParam Long entityId
+    ) {
+        return authService.confirmEntityAdmin(token, entityId);
+    }
+
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);

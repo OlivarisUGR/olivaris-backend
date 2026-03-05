@@ -1,6 +1,7 @@
 package com.olivaris.olivaris_app.services;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.olivaris.olivaris_app.dto.CreateUserEntity;
 import com.olivaris.olivaris_app.dto.LoginRequest;
 import com.olivaris.olivaris_app.dto.RegisterRequest;
 import com.olivaris.olivaris_app.dto.TokenResponse;
@@ -24,6 +26,7 @@ import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 import com.olivaris.olivaris_app.models.ConfirmationToken;
 import com.olivaris.olivaris_app.models.CustomUserDetails;
 import com.olivaris.olivaris_app.models.User;
+import com.olivaris.olivaris_app.models.enums.EntityRoleTypes;
 import com.olivaris.olivaris_app.repositories.ConfirmationTokenRepository;
 import com.olivaris.olivaris_app.repositories.UserRepository;
 
@@ -38,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final ConfirmationTokenRepository tokenRep;
     private final AuthenticationManager authManager;
     private final JwtService jwtService;
+    private final EntityService entityService;
 
     @Transactional
     @Override
@@ -79,6 +83,46 @@ public class AuthServiceImpl implements AuthService {
         User userDb = token.getUser();
         userDb.setEnabled(true);
         userRep.save(userDb);
+
+        // Create the user DTO 
+        UserDto userDto = UserDto.fromEntity(userDb);
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userDto);
+    }
+
+    @Transactional
+    @Override
+    public ResponseEntity<UserDto> confirmEntityAdmin(String confirmToken, Long entityId) {
+        // Check if the token exists
+        Optional<ConfirmationToken> optionalConfirmToken = tokenRep.findByToken(confirmToken);
+
+        if(optionalConfirmToken.isEmpty()) {
+            throw new ConfirmTokenNotExistsException(confirmToken);
+        }
+
+        // Check if token has not expires
+        ConfirmationToken token = optionalConfirmToken.get();
+
+        if(token.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new TokenExpiredException(confirmToken);
+        }
+
+        // Get the user from token and change the enabled value to true
+        User userDb = token.getUser();
+        userDb.setEnabled(true);
+        userRep.save(userDb);
+
+        // Create the relationship between entity admin user and the entity
+        CreateUserEntity createUserEntity = new CreateUserEntity(
+            EntityRoleTypes.ROLE_ADMIN, 
+            List.of()
+        );
+        
+        entityService.assignUserToEntity(
+            entityId, 
+            userDb.getId(), 
+            createUserEntity
+        );
 
         // Create the user DTO 
         UserDto userDto = UserDto.fromEntity(userDb);

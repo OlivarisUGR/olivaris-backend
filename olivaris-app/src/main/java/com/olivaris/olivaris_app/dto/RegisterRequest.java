@@ -40,4 +40,6 @@ public class RegisterRequest {
     private String nif;
 
     private List<RoleTypes> roles;
+
+    private String entityNif;
 }

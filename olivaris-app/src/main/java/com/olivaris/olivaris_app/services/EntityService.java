@@ -10,7 +10,12 @@ import com.olivaris.olivaris_app.dto.UserEntityDto;
 
 public interface EntityService {
     ResponseEntity<EntityDto> create(CreateEntity request);
-    ResponseEntity<UserEntityDto> assignUserToEntity(
+    ResponseEntity<UserEntityDto> createAssignment(
+        Long entityId,
+        Long userId,
+        CreateUserEntity body
+    );
+    UserEntityDto assignUserToEntity(
         Long entityId,
         Long userId,
         CreateUserEntity body

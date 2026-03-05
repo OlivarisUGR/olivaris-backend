@@ -24,7 +24,7 @@ public class EntityValidator {
         boolean isCurrentEntityAdmin = this.currentUserHasRole(RoleTypes.ROLE_ENTITY_ADMIN);
 
         // Only user with Admin or EntityAdmin rol can access
-        if(!isCurrentAdmin || !isCurrentEntityAdmin) {
+        if(!(isCurrentAdmin || isCurrentEntityAdmin)) {
             return false;
         }
 

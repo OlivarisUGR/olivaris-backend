@@ -3,7 +3,6 @@ package com.olivaris.olivaris_app.services;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -16,15 +15,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.olivaris.olivaris_app.dto.RegisterRequest;
 import com.olivaris.olivaris_app.dto.UserDto;
+import com.olivaris.olivaris_app.exceptions.FieldIsNecessaryException;
 import com.olivaris.olivaris_app.exceptions.RoleNotExistsException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 import com.olivaris.olivaris_app.models.ConfirmationToken;
+import com.olivaris.olivaris_app.models.EnabledEntity;
 import com.olivaris.olivaris_app.models.Role;
 import com.olivaris.olivaris_app.models.User;
 import com.olivaris.olivaris_app.models.enums.RoleTypes;
 import com.olivaris.olivaris_app.repositories.ConfirmationTokenRepository;
+import com.olivaris.olivaris_app.repositories.EntityRepository;
 import com.olivaris.olivaris_app.repositories.RoleRepository;
 import com.olivaris.olivaris_app.repositories.UserRepository;
+
+import jakarta.persistence.EntityNotFoundException;
 
 
 @Service
@@ -37,6 +41,7 @@ public class UserServiceImpl implements UserService{
     private final EmailService emailService;
     private final String urlMailHost;
     private final RoleRepository roleRep;
+    private final EntityRepository entityRep;
 
     // Using this constructor because @Value does not injected automatically by Springboot
     // if @AllArgsConstructor is used
@@ -47,7 +52,8 @@ public class UserServiceImpl implements UserService{
         PasswordEncoder passwordEncoder,
         EmailService emailService,
         @Value("${spring.mail.urlServerHost}") String urlMailHost,
-        RoleRepository roleRep
+        RoleRepository roleRep,
+        EntityRepository entityRep
     ) {
         this.userRep = userRep;
         this.confirmTokenRep = confirmTokenRep;
@@ -55,7 +61,8 @@ public class UserServiceImpl implements UserService{
         this.passwordEncoder = passwordEncoder;     
         this.emailService = emailService;    
         this.urlMailHost = urlMailHost;    
-        this.roleRep = roleRep;     
+        this.roleRep = roleRep;   
+        this.entityRep = entityRep;  
     }
 
     @Transactional
@@ -65,16 +72,23 @@ public class UserServiceImpl implements UserService{
         String phone = request.getPhone() != null ? 
                             request.getPhone() : null;
         List<Role> roles = new ArrayList<>();
-        
-        // Find the role user and save on the list
-        Optional<Role> optionalRole = roleRep.findByName(RoleTypes.ROLE_FARMER.toString());
 
-        if(optionalRole.isEmpty()) {
-            throw new RoleNotExistsException(RoleTypes.ROLE_FARMER.toString());
+        // If there isn't a rol on request list, farmer role will given by default
+        if(request.getRoles() == null) {
+            Role farmerRole = roleRep.findByName(RoleTypes.ROLE_FARMER.toString())
+                                .orElseThrow(() -> new RoleNotExistsException(RoleTypes.ROLE_FARMER.toString()));
+
+            roles.add(farmerRole);
+        } else {
+            request.getRoles().stream()
+            .forEach(r -> {
+                Role roleDb = roleRep.findByName(r.toString())
+                                .orElseThrow(() -> new RoleNotExistsException(r.toString()));
+                
+                roles.add(roleDb);
+            });
         }
-
-        roles.add(optionalRole.get());
-
+                
         // Create an admin (TODO: add a script)
         // optionalRole = roleRep.findByName(RoleTypes.ROLE_ADMIN.toString());
         // roles.add(optionalRole.get());
@@ -100,9 +114,27 @@ public class UserServiceImpl implements UserService{
         ConfirmationToken confirmToken = new ConfirmationToken(token, expiresAt, savedUser, true);
         confirmTokenRep.save(confirmToken);
 
-        // Send the email confirmation
-        String url = urlMailHost + token;
-        emailService.sendEmail(savedUser.getEmail(), url, savedUser.getFirstname());
+        Boolean isEntityAdmin = roles.stream().anyMatch(r -> 
+            r.getName().equals(RoleTypes.ROLE_ENTITY_ADMIN.toString())
+        );
+
+        // Send the email confirmation to the farmer user email
+        // If the user to create will be an entity_admin, send the email to the admins system and others
+        // entity_admin that belong to the same entity
+        if(!isEntityAdmin) {
+            String url = urlMailHost + token;
+            emailService.sendEmail(savedUser.getEmail(), url, savedUser.getFirstname());
+        } else if(request.getEntityNif() == null) {
+            throw new FieldIsNecessaryException("El NIF de la entidad es necesario");
+        } else {
+            EnabledEntity entity = entityRep.findByNif(request.getEntityNif())
+                            .orElseThrow(() -> new EntityNotFoundException(
+                                            "No existe una entidad para el NIF especificado"
+                                        ));
+
+            String url = "http://localhost:8080/api/auth/confirmEntityAdmin?token=" + token + "&entityId=" + entity.getId();
+            emailService.sendEmailToAdmins(url, request.getEntityNif());
+        }
 
         return savedUser;
     }
