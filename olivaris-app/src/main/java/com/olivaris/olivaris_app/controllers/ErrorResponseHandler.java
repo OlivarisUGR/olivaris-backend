@@ -21,6 +21,7 @@ import com.olivaris.olivaris_app.exceptions.MailSenderException;
 import com.olivaris.olivaris_app.exceptions.RoleNotExistsException;
 import com.olivaris.olivaris_app.exceptions.TokenExpiredException;
 import com.olivaris.olivaris_app.exceptions.UserAlreadyExistsException;
+import com.olivaris.olivaris_app.exceptions.UserIsEnabledException;
 import com.olivaris.olivaris_app.exceptions.UserNotEnabledException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 
@@ -30,10 +31,13 @@ import jakarta.persistence.EntityNotFoundException;
 @RestControllerAdvice
 public class ErrorResponseHandler {
 
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<ErrorDto> userExists(Exception ex) {
+    @ExceptionHandler({
+        UserAlreadyExistsException.class,
+        UserIsEnabledException.class
+    })
+    public ResponseEntity<ErrorDto> userException(Exception ex) {
         ErrorDto error = new ErrorDto(
-            "El usuario ya existe en la base de datos", 
+            "Excepción relacionada con el estado del usuario almacenado", 
             ex.getMessage(), 
             HttpStatus.CONFLICT.value()
         );

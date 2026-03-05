@@ -24,4 +24,10 @@ public interface UserEntityRoleRepository extends CrudRepository<UserEntityRole,
         WHERE uer.user.id = :userId AND uer.enabledEntity.id = :entityId
     """)
     Optional<EntityRole> getEntityRole(Long userId, Long entityId);
+
+    @Query("""
+        SELECT uer FROM UserEntityRole uer 
+        WHERE uer.user.id = :userId AND uer.enabledEntity.id = :entityId
+        """)
+    Optional<UserEntityRole> getByUserIdAndEntityId(Long userId, Long entityId);
 }

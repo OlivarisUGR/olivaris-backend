@@ -21,6 +21,7 @@ import com.olivaris.olivaris_app.exceptions.AuthHeaderNotValidException;
 import com.olivaris.olivaris_app.exceptions.ConfirmTokenNotExistsException;
 import com.olivaris.olivaris_app.exceptions.TokenExpiredException;
 import com.olivaris.olivaris_app.exceptions.UserAlreadyExistsException;
+import com.olivaris.olivaris_app.exceptions.UserIsEnabledException;
 import com.olivaris.olivaris_app.exceptions.UserNotEnabledException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 import com.olivaris.olivaris_app.models.ConfirmationToken;
@@ -81,6 +82,11 @@ public class AuthServiceImpl implements AuthService {
 
         // Get the user from token and change the enabled value to true
         User userDb = token.getUser();
+
+        if(userDb.getEnabled()) {
+            throw new UserIsEnabledException("El usuario ya está habilitado");
+        } 
+        
         userDb.setEnabled(true);
         userRep.save(userDb);
 
@@ -109,6 +115,11 @@ public class AuthServiceImpl implements AuthService {
 
         // Get the user from token and change the enabled value to true
         User userDb = token.getUser();
+
+        if(userDb.getEnabled()) {
+            throw new UserIsEnabledException("El usuario ya está habilitado");
+        } 
+
         userDb.setEnabled(true);
         userRep.save(userDb);
 
@@ -195,5 +206,4 @@ public class AuthServiceImpl implements AuthService {
 
         return ResponseEntity.status(HttpStatus.CREATED).body(newTokens);
     }
-
 }

@@ -19,7 +19,7 @@ public class EntityValidator {
 
     private final UserEntityRoleRepository userEntityRoleRep;
 
-    public boolean canCreateUpdateAssignment(Long entityId) {
+    public boolean canOperateWithEntity(Long entityId) {
         boolean isCurrentAdmin = this.currentUserHasRole(RoleTypes.ROLE_ADMIN);
         boolean isCurrentEntityAdmin = this.currentUserHasRole(RoleTypes.ROLE_ENTITY_ADMIN);
 

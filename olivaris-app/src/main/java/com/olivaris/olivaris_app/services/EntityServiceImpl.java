@@ -57,7 +57,7 @@ public class EntityServiceImpl implements EntityService {
 
     @Transactional
     @Override
-    @PreAuthorize("@entityValidator.canCreateUpdateAssignment(#entityId)")
+    @PreAuthorize("@entityValidator.canOperateWithEntity(#entityId)")
     public ResponseEntity<UserEntityDto> createAssignment(
         Long entityId, 
         Long userId, 
@@ -112,7 +112,7 @@ public class EntityServiceImpl implements EntityService {
 
     @Transactional
     @Override
-    @PreAuthorize("@entityValidator.canCreateUpdateAssignment(#entityId)")
+    @PreAuthorize("@entityValidator.canOperateWithEntity(#entityId)")
     public ResponseEntity<UserEntityDto> updateUserToEntityData(
         Long entityId, 
         Long userId, 
@@ -150,5 +150,19 @@ public class EntityServiceImpl implements EntityService {
         userEntityRoleDb = userEntityRoleRep.save(userEntityRoleDb);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(UserEntityDto.fromEntity(userEntityRoleDb));
+    }
+
+    @Transactional
+    @Override
+    @PreAuthorize("@entityValidator.canOperateWithEntity(#entityId)")
+    public ResponseEntity<Void> delete(Long entityId, Long userId) {
+        UserEntityRole userEntityRoleDb = userEntityRoleRep.findByUserIdAndEnabledEntityId(userId, entityId)
+                                            .orElseThrow(() -> new EntityNotFoundException(
+                                                "No existe la relación entre usuario y entidad habilitada"
+                                            ));
+
+        userEntityRoleRep.delete(userEntityRoleDb);
+
+        return ResponseEntity.noContent().build();
     }
 }

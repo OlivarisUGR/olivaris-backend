@@ -1,6 +1,7 @@
 package com.olivaris.olivaris_app.controllers;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -48,4 +49,11 @@ public class EntityController {
         return entityServ.updateUserToEntityData(entityId, userId, body);
     }
 
+    @DeleteMapping("/{entityId}/user/{userId}")
+    public ResponseEntity<Void> deleteAssignment(
+        @PathVariable Long entityId,
+        @PathVariable Long userId
+    ) {
+        return entityServ.delete(entityId, userId);
+    }
 }
