@@ -20,6 +20,7 @@ import com.olivaris.olivaris_app.models.EntityPermission;
 import com.olivaris.olivaris_app.models.EntityRole;
 import com.olivaris.olivaris_app.models.User;
 import com.olivaris.olivaris_app.models.UserEntityRole;
+import com.olivaris.olivaris_app.models.enums.EntityRoleTypes;
 import com.olivaris.olivaris_app.repositories.EntityPermissionRepository;
 import com.olivaris.olivaris_app.repositories.EntityRepository;
 import com.olivaris.olivaris_app.repositories.EntityRoleRepository;
@@ -88,7 +89,10 @@ public class EntityServiceImpl implements EntityService {
                                     ));
 
         List<EntityPermission> entityPermList = new ArrayList<>();
-        body.getEntityPermissions().stream()
+
+        // Only the farmer user will give permissions to the entity
+        if(entityRoleDb.getName().equals(EntityRoleTypes.ROLE_FARMER.toString())) {
+            body.getEntityPermissions().stream()
             .forEach(p -> {
                 EntityPermission permDb = entityPermRep.findByName(p.toString())
                                             .orElseThrow(() -> new EntityNotFoundException(
@@ -97,6 +101,7 @@ public class EntityServiceImpl implements EntityService {
                 
                 entityPermList.add(permDb);
             });
+        } 
 
         UserEntityRole newUserEntityRole = new UserEntityRole(
             userDb,
@@ -132,7 +137,8 @@ public class EntityServiceImpl implements EntityService {
             userEntityRoleDb.setEntityRole(entityRoleDb);
         }
 
-        if(body.getEntityPermissions() != null) {
+        if(body.getEntityPermissions() != null &&
+            userEntityRoleDb.getEntityRole().getName().equals(EntityRoleTypes.ROLE_FARMER.toString())) {
             List<EntityPermission> entityPermList = new ArrayList<>();
             body.getEntityPermissions().stream()
                 .forEach(p -> {
