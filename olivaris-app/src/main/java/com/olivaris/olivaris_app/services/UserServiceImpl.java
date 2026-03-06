@@ -39,7 +39,8 @@ public class UserServiceImpl implements UserService{
     private final Long confirmTokenExpiresHours;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
-    private final String urlMailHost;
+    private final String urlConfirm;
+    private final String urlConfirmAdmin;
     private final RoleRepository roleRep;
     private final EntityRepository entityRep;
 
@@ -51,7 +52,8 @@ public class UserServiceImpl implements UserService{
         @Value("${confirmation-token.expiration-hours}") Long confirmTokenExpiresHours,
         PasswordEncoder passwordEncoder,
         EmailService emailService,
-        @Value("${spring.mail.urlServerHost}") String urlMailHost,
+        @Value("${spring.mail.urlConfirm}") String urlConfirm,
+        @Value("${spring.mail.urlConfirmAdmin}") String urlConfirmAdmin,
         RoleRepository roleRep,
         EntityRepository entityRep
     ) {
@@ -60,7 +62,8 @@ public class UserServiceImpl implements UserService{
         this.confirmTokenExpiresHours = confirmTokenExpiresHours;
         this.passwordEncoder = passwordEncoder;     
         this.emailService = emailService;    
-        this.urlMailHost = urlMailHost;    
+        this.urlConfirm = urlConfirm;   
+        this.urlConfirmAdmin = urlConfirmAdmin; 
         this.roleRep = roleRep;   
         this.entityRep = entityRep;  
     }
@@ -122,8 +125,8 @@ public class UserServiceImpl implements UserService{
         // If the user to create will be an entity_admin, send the email to the admins system and others
         // entity_admin that belong to the same entity
         if(!isEntityAdmin) {
-            String url = urlMailHost + token;
-            emailService.sendEmail(savedUser.getEmail(), url, savedUser.getFirstname());
+            String url = urlConfirm + token;
+            emailService.sendEmailToOthers(savedUser.getEmail(), url, savedUser.getFirstname());
         } else if(request.getEntityNif() == null) {
             throw new FieldIsNecessaryException("El NIF de la entidad es necesario");
         } else {
@@ -132,8 +135,8 @@ public class UserServiceImpl implements UserService{
                                             "No existe una entidad para el NIF especificado"
                                         ));
 
-            String url = "http://localhost:8080/api/auth/confirmEntityAdmin?token=" + token + "&entityId=" + entity.getId();
-            emailService.sendEmailToAdmins(url, request.getEntityNif());
+            String url = urlConfirmAdmin + token + "&entityId=" + entity.getId();
+            emailService.sendEmailToAdmins(url, request.getEntityNif(), savedUser.getEmail());
         }
 
         return savedUser;
