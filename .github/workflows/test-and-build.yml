@@ -7,6 +7,10 @@ on:
 jobs:
   test_and_build:
     runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./olivaris-app
 
     steps:
     - name: Checkout code
@@ -20,14 +24,14 @@ jobs:
         cache: maven
 
     - name: Run test
-      run: mvn clean test --file pom.xml
+      run: mvn clean test
 
     - name: Build with Maven
-      run: mvn -B package -DskipTests --file pom.xml
+      run: mvn -B package -DskipTests
     
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: test-results
-        path: target/surefire-reports/
+        path: olivaris-app/target/surefire-reports/
