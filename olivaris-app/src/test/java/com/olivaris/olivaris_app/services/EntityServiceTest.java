@@ -59,13 +59,13 @@ public class EntityServiceTest {
 
     @BeforeEach
     public void setUp() {
-        // Create the entity admin user
+        // Create the entity admin user (canomelero1@gmail.com)
         Role entityAdminSystemRole = roleRepository.findByName("ROLE_ENTITY_ADMIN")
             .orElseThrow(() -> new RuntimeException("ROLE_ENTITY_ADMIN not found"));
         
         entityAdminUser = userRepository.save(UserFixtures.createBasicUser(entityAdminSystemRole));
          
-        // Create the farmer user
+        // Create the farmer user (carlos@gmail.com)
         Role farmerRole = roleRepository.findByName("ROLE_FARMER")
             .orElseThrow(() -> new RuntimeException("ROLE_FARMER not found"));
         
@@ -81,7 +81,7 @@ public class EntityServiceTest {
         entityAdminRole = entityRoleRepository.findByName(EntityRoleTypes.ROLE_ADMIN.toString())
             .orElseThrow(() -> new RuntimeException("Entity ROLE_ADMIN not found"));
 
-        // Assign entityAdminUser as admin to entityA
+        // Assign entityAdminUser to entityA
         UserEntityRole userEntityRoleA = new UserEntityRole(
             entityAdminUser,
             entityA,
