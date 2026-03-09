@@ -3,8 +3,6 @@ name: Test and Build
 on:
   push:
     branches: [ "main", "sprint-1" ]
-  pull_request:
-    branches: [ "main", "sprint-1" ]
 
 jobs:
   test_and_build:
