@@ -1,0 +1,56 @@
+# ---- OS / Editor ----
+.DS_Store
+Thumbs.db
+.vscode/
+**/.vscode/
+.idea/
+**/.idea/
+*.iml
+*.iws
+*.ipr
+
+# ---- Env / secrets ----
+.env
+.env.local
+.env.*.local
+*.env
+*.pem
+*.key
+
+# Main app local config (keep test config tracked)
+**/src/main/resources/application.properties
+**/src/main/resources/application-*.properties
+
+# ---- Logs ----
+*.log
+logs/
+
+# ---- Java / Maven / Spring ----
+**/target/
+**/build/
+**/.classpath
+**/.project
+**/.settings/
+**/.factorypath
+**/.apt_generated
+**/.springBeans
+**/.sts4-cache
+**/.mvn/wrapper/maven-wrapper.jar
+**/HELP.md
+
+# ---- NetBeans ----
+**/nbproject/private/
+**/nbbuild/
+**/dist/
+**/nbdist/
+**/.nb-gradle/
+
+# ---- Reports ----
+**/surefire-reports/
+**/failsafe-reports/
+
+# ---- Keep source folders named target/build if needed ----
+!**/src/main/**/target/
+!**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
