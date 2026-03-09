@@ -7,16 +7,29 @@ import com.olivaris.olivaris_app.models.User;
 
 public class UserFixtures {
 
-    public static User createBasicUser(Role adminRole) {
+    public static User createBasicUser(Role role) {
         return new User(
             "jorge",
             "cano melero",
             "canomelero1@gmail.com",
             "Prueba123",
             null,
-            Arrays.asList(adminRole),
+            Arrays.asList(role),
             true,
             "77012264Q"
+        );
+    }
+
+    public static User createBasicUser2(Role role) {
+        return new User(
+            "carlos",
+            "cano melero",
+            "carlos@gmail.com",
+            "Prueba123",
+            null,
+            Arrays.asList(role),
+            true,
+            "77012264C"
         );
     }
 }

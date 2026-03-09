@@ -2,6 +2,7 @@ package com.olivaris.olivaris_app.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -34,7 +35,7 @@ public class SecurityConfig {
                 // Allow all requests to auth endpoints
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/user/**").hasAnyRole("ADMIN", "ENTITY_ADMIN")
-                .requestMatchers("/api/entity/").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/entity/").hasRole("ADMIN")
                 .requestMatchers("/api/entity/{entityId}/**").hasAnyRole("ADMIN", "ENTITY_ADMIN")
                 .anyRequest()
                 .authenticated()

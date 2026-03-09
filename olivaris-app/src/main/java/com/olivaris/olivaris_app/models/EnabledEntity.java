@@ -58,4 +58,11 @@ public class EnabledEntity {
         this.email = email;
         this.active = active;
     }
+
+    // Constructor to use on tests
+    public EnabledEntity(Long id, String name, String nif) {
+        this.id = id;
+        this.name = name;
+        this.nif = nif;
+    }
 }
