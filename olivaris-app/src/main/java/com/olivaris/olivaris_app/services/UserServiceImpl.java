@@ -18,12 +18,10 @@ import com.olivaris.olivaris_app.dto.UserDto;
 import com.olivaris.olivaris_app.exceptions.FieldIsNecessaryException;
 import com.olivaris.olivaris_app.exceptions.RoleNotExistsException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
-import com.olivaris.olivaris_app.models.ConfirmationToken;
 import com.olivaris.olivaris_app.models.EnabledEntity;
 import com.olivaris.olivaris_app.models.Role;
 import com.olivaris.olivaris_app.models.User;
 import com.olivaris.olivaris_app.models.enums.RoleTypes;
-import com.olivaris.olivaris_app.repositories.ConfirmationTokenRepository;
 import com.olivaris.olivaris_app.repositories.EntityRepository;
 import com.olivaris.olivaris_app.repositories.RoleRepository;
 import com.olivaris.olivaris_app.repositories.UserRepository;
@@ -35,7 +33,6 @@ import jakarta.persistence.EntityNotFoundException;
 public class UserServiceImpl implements UserService{
 
     private final UserRepository userRep;
-    private final ConfirmationTokenRepository confirmTokenRep;
     private final Long confirmTokenExpiresHours;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
@@ -48,7 +45,6 @@ public class UserServiceImpl implements UserService{
     // if @AllArgsConstructor is used
     public UserServiceImpl(
         UserRepository userRep,
-        ConfirmationTokenRepository confirmTokenRep,
         @Value("${confirmation-token.expiration-hours}") Long confirmTokenExpiresHours,
         PasswordEncoder passwordEncoder,
         EmailService emailService,
@@ -58,7 +54,6 @@ public class UserServiceImpl implements UserService{
         EntityRepository entityRep
     ) {
         this.userRep = userRep;
-        this.confirmTokenRep = confirmTokenRep;
         this.confirmTokenExpiresHours = confirmTokenExpiresHours;
         this.passwordEncoder = passwordEncoder;     
         this.emailService = emailService;    
@@ -98,6 +93,10 @@ public class UserServiceImpl implements UserService{
         // optionalRole = roleRep.findByName(RoleTypes.ROLE_ENTITY_ADMIN.toString());
         // roles.add(optionalRole.get());
 
+        // Create the confirm token, user and save both
+        String token = UUID.randomUUID().toString();
+        LocalDateTime tokenExpiresAt = LocalDateTime.now().plusHours(confirmTokenExpiresHours);
+
         User newUser = new User(
             request.getFirstname(),
             request.getLastname(),
@@ -106,24 +105,20 @@ public class UserServiceImpl implements UserService{
             phone,
             roles,
             false,
-            request.getNif()
+            request.getNif(),
+            token,
+            tokenExpiresAt
         );
 
         User savedUser = userRep.save(newUser);
 
-        // Create the confirm token and save it
-        String token = UUID.randomUUID().toString();
-        LocalDateTime expiresAt = LocalDateTime.now().plusHours(confirmTokenExpiresHours);
-        ConfirmationToken confirmToken = new ConfirmationToken(token, expiresAt, savedUser, true);
-        confirmTokenRep.save(confirmToken);
-
+        // Send the email confirmation to the farmer user email.
+        // If the user to create will be an entity_admin, send the email to the admins system and others
+        // entity_admin that belong to the same entity
         Boolean isEntityAdmin = roles.stream().anyMatch(r -> 
             r.getName().equals(RoleTypes.ROLE_ENTITY_ADMIN.toString())
         );
 
-        // Send the email confirmation to the farmer user email
-        // If the user to create will be an entity_admin, send the email to the admins system and others
-        // entity_admin that belong to the same entity
         if(!isEntityAdmin) {
             String url = urlConfirm + token;
             emailService.sendEmailToOthers(savedUser.getEmail(), url, savedUser.getFirstname());
@@ -163,7 +158,9 @@ public class UserServiceImpl implements UserService{
             phone,
             roles,
             true,
-            request.getNif()
+            request.getNif(),
+            null,
+            null
         );
 
         User savedUser = userRep.save(newUser);

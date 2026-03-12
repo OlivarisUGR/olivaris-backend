@@ -32,4 +32,6 @@ public interface UserRepository extends CrudRepository<User, Long> {
                 AND er.name = :entityRole
         """)
     List<String> getEmailEntityAdmins(String systemRole, String entityRole, String entityNif);
+
+    Optional<User> findByConfirmationToken(String confirmationToken);
 }

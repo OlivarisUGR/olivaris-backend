@@ -24,11 +24,9 @@ import com.olivaris.olivaris_app.exceptions.UserAlreadyExistsException;
 import com.olivaris.olivaris_app.exceptions.UserIsEnabledException;
 import com.olivaris.olivaris_app.exceptions.UserNotEnabledException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
-import com.olivaris.olivaris_app.models.ConfirmationToken;
 import com.olivaris.olivaris_app.models.CustomUserDetails;
 import com.olivaris.olivaris_app.models.User;
 import com.olivaris.olivaris_app.models.enums.EntityRoleTypes;
-import com.olivaris.olivaris_app.repositories.ConfirmationTokenRepository;
 import com.olivaris.olivaris_app.repositories.UserRepository;
 
 import lombok.AllArgsConstructor;
@@ -39,7 +37,6 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRep;
     private final UserService userService;
-    private final ConfirmationTokenRepository tokenRep;
     private final AuthenticationManager authManager;
     private final JwtService jwtService;
     private final EntityService entityService;
@@ -67,22 +64,17 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseEntity<UserDto> confirm(String confirmToken) {
         // Check if the token exists
-        Optional<ConfirmationToken> optionalConfirmToken = tokenRep.findByToken(confirmToken);
-
-        if(optionalConfirmToken.isEmpty()) {
-            throw new ConfirmTokenNotExistsException(confirmToken);
-        }
+        User userDb = userRep.findByConfirmationToken(confirmToken)
+                            .orElseThrow(() -> new ConfirmTokenNotExistsException(confirmToken));
 
         // Check if token has not expires
-        ConfirmationToken token = optionalConfirmToken.get();
+        LocalDateTime tokenExpiresAt = userDb.getTokenExpiresAt();
 
-        if(token.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if(tokenExpiresAt.isBefore(LocalDateTime.now())) {
             throw new TokenExpiredException(confirmToken);
         }
 
-        // Get the user from token and change the enabled value to true
-        User userDb = token.getUser();
-
+        // Change user enabled value to true
         if(userDb.getEnabled()) {
             throw new UserIsEnabledException("El usuario ya está habilitado");
         } 
@@ -100,26 +92,21 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseEntity<UserDto> confirmEntityAdmin(String confirmToken, Long entityId) {
         // Check if the token exists
-        Optional<ConfirmationToken> optionalConfirmToken = tokenRep.findByToken(confirmToken);
-
-        if(optionalConfirmToken.isEmpty()) {
-            throw new ConfirmTokenNotExistsException(confirmToken);
-        }
+        User userDb = userRep.findByConfirmationToken(confirmToken)
+                            .orElseThrow(() -> new ConfirmTokenNotExistsException(confirmToken));
 
         // Check if token has not expires
-        ConfirmationToken token = optionalConfirmToken.get();
+        LocalDateTime tokenExpiresAt = userDb.getTokenExpiresAt();
 
-        if(token.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if(tokenExpiresAt.isBefore(LocalDateTime.now())) {
             throw new TokenExpiredException(confirmToken);
         }
 
-        // Get the user from token and change the enabled value to true
-        User userDb = token.getUser();
-
+        // Change user enabled value to true
         if(userDb.getEnabled()) {
             throw new UserIsEnabledException("El usuario ya está habilitado");
         } 
-
+        
         userDb.setEnabled(true);
         userRep.save(userDb);
 

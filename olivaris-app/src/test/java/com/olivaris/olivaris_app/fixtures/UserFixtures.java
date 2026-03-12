@@ -16,7 +16,9 @@ public class UserFixtures {
             null,
             Arrays.asList(role),
             true,
-            "77012264Q"
+            "77012264Q",
+            null,
+            null
         );
     }
 
@@ -29,7 +31,9 @@ public class UserFixtures {
             null,
             Arrays.asList(role),
             true,
-            "77012264C"
+            "77012264C",
+            null,
+            null
         );
     }
 }

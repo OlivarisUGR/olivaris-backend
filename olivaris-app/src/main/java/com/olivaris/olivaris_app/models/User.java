@@ -20,7 +20,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.Email;
@@ -98,14 +97,17 @@ public class User {
     )
     private List<Role> roles;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private ConfirmationToken confirmationToken;
+    @Column(unique = true)
+    private String confirmationToken;
+
+    private LocalDateTime tokenExpiresAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserEntityRole> userEntity;
 
     public User(String firstname, String lastname, String email, String password, 
-        String phone, List<Role> roles, Boolean enabled, String nif
+        String phone, List<Role> roles, Boolean enabled, String nif, String confirmationToken,
+        LocalDateTime tokenExpiresAt
     ) {
         this.firstname = firstname;
         this.lastname = lastname;
@@ -115,5 +117,7 @@ public class User {
         this.roles = roles;
         this.enabled = enabled;
         this.nif = nif;
+        this.confirmationToken = confirmationToken;
+        this.tokenExpiresAt = tokenExpiresAt;
     }
 }
