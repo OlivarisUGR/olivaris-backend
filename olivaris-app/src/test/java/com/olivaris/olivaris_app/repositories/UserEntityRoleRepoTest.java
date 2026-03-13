@@ -2,9 +2,6 @@ package com.olivaris.olivaris_app.repositories;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -12,7 +9,6 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import com.olivaris.olivaris_app.fixtures.EntityFixtures;
 import com.olivaris.olivaris_app.fixtures.UserFixtures;
 import com.olivaris.olivaris_app.models.EnabledEntity;
-import com.olivaris.olivaris_app.models.EntityPermission;
 import com.olivaris.olivaris_app.models.EntityRole;
 import com.olivaris.olivaris_app.models.Role;
 import com.olivaris.olivaris_app.models.User;
@@ -28,9 +24,6 @@ public class UserEntityRoleRepoTest {
 
     @Autowired
     private EntityRoleRepository entityRoleRep;
-
-    @Autowired
-    private EntityPermissionRepository entityPermRep;
 
     @Autowired
     private UserEntityRoleRepository userEntRoleRep;
@@ -57,16 +50,14 @@ public class UserEntityRoleRepoTest {
                                     "El rol dentro de la entidad no existe en la base de datos"
                                     ));
 
-        List<EntityPermission> entityPermList = Arrays.asList(entityPermRep.findByName("WRITE_CUE")
-                                            .orElseThrow(() -> new EntityNotFoundException(
-                                            "El permiso dentro de la entidad no existe en la base de datos"
-                                            )));
-
         UserEntityRole userToEntity = new UserEntityRole(
             user,
             entity,
             entityRoleDb,
-            entityPermList
+            true,
+            true,
+            false,
+            false
         );
 
         UserEntityRole saved = userEntRoleRep.save(userToEntity);
@@ -75,9 +66,6 @@ public class UserEntityRoleRepoTest {
         assertThat(saved.getUser().getId()).isEqualTo(user.getId());
         assertThat(saved.getEnabledEntity().getId()).isEqualTo(entity.getId());
         assertThat(saved.getEntityRole().getName()).isEqualTo("ROLE_FARMER");
-        assertThat(saved.getPermissions())
-            .extracting(EntityPermission::getName)
-            .containsExactly("WRITE_CUE");
 
         UserEntityRole found = userEntRoleRep
             .findByUserIdAndEnabledEntityId(user.getId(), entity.getId())

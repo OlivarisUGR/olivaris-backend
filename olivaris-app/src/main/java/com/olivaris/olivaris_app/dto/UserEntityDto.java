@@ -1,8 +1,5 @@
 package com.olivaris.olivaris_app.dto;
 
-import java.util.List;
-
-import com.olivaris.olivaris_app.models.EntityPermission;
 import com.olivaris.olivaris_app.models.EntityRole;
 import com.olivaris.olivaris_app.models.UserEntityRole;
 
@@ -17,14 +14,20 @@ public class UserEntityDto {
     private String userNif;
     private String entityNif;
     private EntityRole entityRole;
-    private List<EntityPermission> entityPermission;
+    private Boolean writeCue;
+    private Boolean writeRea;
+    private Boolean readCue;
+    private Boolean readRea;
 
     public static UserEntityDto fromEntity(UserEntityRole userEntityRole) {
         return new UserEntityDto(
             userEntityRole.getUser().getNif(),
             userEntityRole.getEnabledEntity().getNif(),
             userEntityRole.getEntityRole(),
-            userEntityRole.getPermissions()
+            userEntityRole.getWriteCue(),
+            userEntityRole.getWriteRea(),
+            userEntityRole.getReadCue(),
+            userEntityRole.getReadRea()
         );
     }
 }

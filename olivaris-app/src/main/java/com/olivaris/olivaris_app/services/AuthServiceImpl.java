@@ -1,7 +1,6 @@
 package com.olivaris.olivaris_app.services;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
@@ -113,7 +112,10 @@ public class AuthServiceImpl implements AuthService {
         // Create the relationship between entity admin user and the entity
         CreateUserEntity createUserEntity = new CreateUserEntity(
             EntityRoleTypes.ROLE_ADMIN, 
-            List.of()
+            null,
+            null,
+            null,
+            null
         );
         
         entityService.assignUserToEntity(

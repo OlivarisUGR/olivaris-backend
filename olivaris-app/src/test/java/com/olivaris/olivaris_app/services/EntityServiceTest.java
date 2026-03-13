@@ -1,8 +1,5 @@
 package com.olivaris.olivaris_app.services;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +15,6 @@ import com.olivaris.olivaris_app.models.EntityRole;
 import com.olivaris.olivaris_app.models.Role;
 import com.olivaris.olivaris_app.models.User;
 import com.olivaris.olivaris_app.models.UserEntityRole;
-import com.olivaris.olivaris_app.models.enums.EntityPermissionTypes;
 import com.olivaris.olivaris_app.models.enums.EntityRoleTypes;
 import com.olivaris.olivaris_app.repositories.EntityRepository;
 import com.olivaris.olivaris_app.repositories.EntityRoleRepository;
@@ -86,7 +82,10 @@ public class EntityServiceTest {
             entityAdminUser,
             entityA,
             entityAdminRole,
-            List.of()
+            null,
+            null,
+            null,
+            null
         );
 
         userEntityRoleRepository.save(userEntityRoleA);
@@ -100,7 +99,10 @@ public class EntityServiceTest {
     public void adminCannotAssignUserToForeignEntity() throws Exception {
        CreateUserEntity assignmentRequest = new CreateUserEntity(
             EntityRoleTypes.ROLE_FARMER,
-            Arrays.asList(EntityPermissionTypes.WRITE_CUE)
+            true,
+            true,
+            false,
+            false
         );
 
         assertThatThrownBy(() -> {

@@ -1,8 +1,5 @@
 package com.olivaris.olivaris_app.services;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,12 +13,10 @@ import com.olivaris.olivaris_app.dto.UpdateUserEntity;
 import com.olivaris.olivaris_app.dto.UserEntityDto;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 import com.olivaris.olivaris_app.models.EnabledEntity;
-import com.olivaris.olivaris_app.models.EntityPermission;
 import com.olivaris.olivaris_app.models.EntityRole;
 import com.olivaris.olivaris_app.models.User;
 import com.olivaris.olivaris_app.models.UserEntityRole;
 import com.olivaris.olivaris_app.models.enums.EntityRoleTypes;
-import com.olivaris.olivaris_app.repositories.EntityPermissionRepository;
 import com.olivaris.olivaris_app.repositories.EntityRepository;
 import com.olivaris.olivaris_app.repositories.EntityRoleRepository;
 import com.olivaris.olivaris_app.repositories.UserEntityRoleRepository;
@@ -37,7 +32,6 @@ public class EntityServiceImpl implements EntityService {
     private final EntityRepository entityRep;
     private final UserRepository userRep;
     private final EntityRoleRepository entityRoleRep;
-    private final EntityPermissionRepository entityPermRep;
     private final UserEntityRoleRepository userEntityRoleRep;
 
     @Transactional
@@ -87,27 +81,29 @@ public class EntityServiceImpl implements EntityService {
                                     .orElseThrow(() -> new EntityNotFoundException(
                                     "El rol dentro de la entidad no existe en la base de datos"
                                     ));
+        
+        Boolean writeCue = null;
+        Boolean writeRea = null;
+        Boolean readCue = null;
+        Boolean readRea = null;
 
-        List<EntityPermission> entityPermList = new ArrayList<>();
-
-        // Only the farmer user will give permissions to the entity
+        // If role is farmer -> check the permissions from request body
+        // Else is admin role -> permissions will be null
         if(entityRoleDb.getName().equals(EntityRoleTypes.ROLE_FARMER.toString())) {
-            body.getEntityPermissions().stream()
-            .forEach(p -> {
-                EntityPermission permDb = entityPermRep.findByName(p.toString())
-                                            .orElseThrow(() -> new EntityNotFoundException(
-                                            "El permiso dentro de la entidad no existe en la base de datos"
-                                            ));
-                
-                entityPermList.add(permDb);
-            });
+            writeCue = body.getWriteCue() != null ? body.getWriteCue() : false;
+            writeRea = body.getWriteRea() != null ? body.getWriteRea() : false;
+            readCue = body.getReadCue() != null ? body.getReadCue() : false;
+            readRea = body.getReadRea() != null ? body.getReadRea() : false;
         } 
 
         UserEntityRole newUserEntityRole = new UserEntityRole(
             userDb,
             entityDb,
             entityRoleDb,
-            entityPermList
+            writeCue,
+            writeRea,
+            readCue,
+            readRea
         );
 
         UserEntityRole userEntityRoleDb = userEntityRoleRep.save(newUserEntityRole);
@@ -137,20 +133,20 @@ public class EntityServiceImpl implements EntityService {
             userEntityRoleDb.setEntityRole(entityRoleDb);
         }
 
-        if(body.getEntityPermissions() != null &&
-            userEntityRoleDb.getEntityRole().getName().equals(EntityRoleTypes.ROLE_FARMER.toString())) {
-            List<EntityPermission> entityPermList = new ArrayList<>();
-            body.getEntityPermissions().stream()
-                .forEach(p -> {
-                    EntityPermission permDb = entityPermRep.findByName(p.toString())
-                                                .orElseThrow(() -> new EntityNotFoundException(
-                                                "El permiso dentro de la entidad no existe en la base de datos"
-                                                ));
-                    
-                    entityPermList.add(permDb);
-                });
-            
-            userEntityRoleDb.setPermissions(entityPermList);
+        if(body.getWriteCue()) {
+            userEntityRoleDb.setWriteCue(body.getWriteCue());
+        }
+
+        if(body.getWriteRea()) {
+            userEntityRoleDb.setWriteRea(body.getWriteRea());
+        }
+
+        if(body.getReadCue()) {
+            userEntityRoleDb.setReadCue(body.getReadCue());
+        }
+
+        if(body.getReadRea()) {
+            userEntityRoleDb.setReadRea(body.getReadRea());
         }
 
         userEntityRoleDb = userEntityRoleRep.save(userEntityRoleDb);
