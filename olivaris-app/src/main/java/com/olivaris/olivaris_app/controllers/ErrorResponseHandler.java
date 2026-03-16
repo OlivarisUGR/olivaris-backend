@@ -161,6 +161,17 @@ public class ErrorResponseHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorDto> runtimeException(Exception ex) {
+        ErrorDto error = new ErrorDto(
+            "Error durante la ejecución de una funcionalidad", 
+            ex.getMessage(), 
+            HttpStatus.SERVICE_UNAVAILABLE.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
     // This method will manage the validation from input request data
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorDto> argumentNotValid(MethodArgumentNotValidException e) {
