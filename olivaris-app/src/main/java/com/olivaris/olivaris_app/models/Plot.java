@@ -79,6 +79,9 @@ public class Plot {
     @OneToMany(mappedBy = "plot", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Enclosure> enclosures;
 
+    @OneToMany(mappedBy = "plot", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserPlot> userList;
+
     public Plot(String provinceCode, String cityCode, String polygonCode, String plotNum, 
         String landRegister, Double area, Polygon geometry
     ) {

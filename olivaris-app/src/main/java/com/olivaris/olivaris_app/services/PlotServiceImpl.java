@@ -47,6 +47,7 @@ public class PlotServiceImpl implements PlotService {
         String polygonCode = request.getPolygonCode().trim();
         String plotNum = request.getPlotNum().trim();
         
+        // Find if the plot is saved on database
         Plot plotDb = new Plot();
         Optional<Plot> optionalPlot = plotRep.findByProvinceAndCityAndPolygonCodeAndPlotNum(
                                                 province, city, polygonCode, plotNum

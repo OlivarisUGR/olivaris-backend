@@ -105,6 +105,9 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserEntityRole> userEntity;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserPlot> plotList;
+
     public User(String firstname, String lastname, String email, String password, 
         String phone, List<Role> roles, Boolean enabled, String nif, String confirmationToken,
         LocalDateTime tokenExpiresAt
