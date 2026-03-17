@@ -6,11 +6,11 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import com.olivaris.olivaris_app.models.Plot;
+import com.olivaris.olivaris_app.models.User;
+import com.olivaris.olivaris_app.models.UserPlot;
 
 @Repository
-public interface PlotRepository extends CrudRepository<Plot, Long> {
+public interface UserPlotRepository extends CrudRepository<UserPlot, Long>{
 
-    Optional<Plot> findByProvinceAndCityAndPolygonCodeAndPlotNum(
-        String province, String city, String polygonCode, String plotNum
-    );
+	Optional<UserPlot> findByUserAndPlot(User user, Plot plot);
 }

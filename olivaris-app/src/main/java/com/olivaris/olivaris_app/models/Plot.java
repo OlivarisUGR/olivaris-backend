@@ -12,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,7 +20,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "plot")
+@Table(
+    name = "plot",
+    uniqueConstraints = @UniqueConstraint(
+        columnNames = {"province_code", "city_code", "polygon_code", "plot_num"}
+    )
+)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -29,10 +35,6 @@ public class Plot {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @NotBlank(message = "{plot.name.notblank}")
-    @Column(name = "name", nullable = false)
-    private String name;
 
     @NotBlank(message = "{plot.provinceCode.notblank}")
     @Column(name = "province_code", length = 2, nullable = false)
@@ -91,10 +93,9 @@ public class Plot {
         this.geometry = geometry;
     }
 
-    public Plot(String name, String provinceCode, String cityCode, String polygonCode,
+    public Plot(String provinceCode, String cityCode, String polygonCode,
         String plotNum, String landRegister, String province, String city
     ) {
-        this.name = name;
         this.provinceCode = provinceCode;
         this.cityCode = cityCode;
         this.polygonCode = polygonCode;

@@ -3,6 +3,7 @@ package com.olivaris.olivaris_app.services;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
@@ -22,8 +23,9 @@ import com.olivaris.olivaris_app.models.CustomUserDetails;
 import com.olivaris.olivaris_app.models.Enclosure;
 import com.olivaris.olivaris_app.models.Plot;
 import com.olivaris.olivaris_app.models.User;
+import com.olivaris.olivaris_app.models.UserPlot;
 import com.olivaris.olivaris_app.repositories.PlotRepository;
-import com.olivaris.olivaris_app.repositories.UserRepository;
+import com.olivaris.olivaris_app.repositories.UserPlotRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
@@ -35,35 +37,63 @@ public class PlotServiceImpl implements PlotService {
     private final PlotRepository plotRep;
     private final EnclosureService enclosureServ;
     private final SigpacApiClient sigpacApiClient;
-    private final UserRepository userRep;
+    private final UserPlotRepository userPlotRep;
 
     @Transactional
     @Override
     public ResponseEntity<PlotDto> create(CreatePlot request) {
-        int provinceCode = this.getProvinceCode(request.getProvince());
-        int cityCode = this.getCityCode(request.getCity(), String.valueOf(provinceCode));
+        String province = request.getProvince().trim().toUpperCase();
+        String city = request.getCity().trim().toUpperCase();
+        String polygonCode = request.getPolygonCode().trim();
+        String plotNum = request.getPlotNum().trim();
+        
+        Plot plotDb = new Plot();
+        Optional<Plot> optionalPlot = plotRep.findByProvinceAndCityAndPolygonCodeAndPlotNum(
+                                                province, city, polygonCode, plotNum
+                                            );
 
-        // Create and save the plot
-        Plot newPlot = new Plot(
-            request.getName(),
-            String.valueOf(provinceCode),
-            String.valueOf(cityCode), 
-            request.getPolygonCode(), 
-            request.getPlotNum(), 
-            request.getLandRegister(),
-            request.getProvince().toUpperCase(),
-            request.getCity().toUpperCase()
-        );
-
-        Plot plotDb = plotRep.save(newPlot);
+        if(optionalPlot.isEmpty()) {
+            plotDb = this.createPlotAndEnclosures(request);
+        } else {
+            plotDb = optionalPlot.get();
+        }
 
         // Assign the plot to the user that execute the method
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
         User userDb = userDetails.getUser();
 
-        userDb.getPlotList().add(plotDb);
-        userRep.save(userDb);
+        UserPlot userPlot = new UserPlot(userDb, plotDb, request.getName());
+        userPlotRep.save(userPlot);
+
+        // Create the Plot DTO
+        PlotDto plotDto = PlotDto.fromEntity(plotDb);
+        return ResponseEntity.status(HttpStatus.CREATED).body(plotDto);
+    }
+
+    @Transactional
+    @Override
+    public Plot createPlotAndEnclosures(CreatePlot request) {
+        String province = request.getProvince().trim().toUpperCase();
+        String city = request.getCity().trim().toUpperCase();
+        String polygonCode = request.getPolygonCode().trim();
+        String plotNum = request.getPlotNum().trim();
+
+        int provinceCode = this.getProvinceCode(province);
+        int cityCode = this.getCityCode(city, String.valueOf(provinceCode));
+
+        // Create and save the plot
+        Plot newPlot = new Plot(
+            String.valueOf(provinceCode),
+            String.valueOf(cityCode), 
+            polygonCode, 
+            plotNum, 
+            request.getLandRegister(),
+            province,
+            city
+        );
+
+        Plot plotDb = plotRep.save(newPlot);
 
         // Get plot enclosures from SIGPAC API
         SigpacGeoJsonResponse plotEnclosures = sigpacApiClient.getPlotEnclosures(
@@ -71,8 +101,8 @@ public class PlotServiceImpl implements PlotService {
             cityCode,
             0, 
             0, 
-            Integer.valueOf(request.getPolygonCode()), 
-            Integer.valueOf(request.getPlotNum())
+            Integer.valueOf(polygonCode), 
+            Integer.valueOf(plotNum)
         );
 
         // Create and save the plot enclosures on the system
@@ -101,9 +131,7 @@ public class PlotServiceImpl implements PlotService {
             plotDb = plotRep.save(plotDb);
         }
 
-        // Create the Plot DTO
-        PlotDto plotDto = PlotDto.fromEntity(plotDb);
-        return ResponseEntity.status(HttpStatus.CREATED).body(plotDto);
+        return plotDb;
     }
 
     @Transactional
