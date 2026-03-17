@@ -87,7 +87,7 @@ public class User {
     @Column(nullable = false)
     private Boolean enabled;
 
-    // This will generate a relationship table between user table and role table
+    // This will generate a relation table between user table and role table
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_role",
@@ -104,6 +104,16 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserEntityRole> userEntity;
+
+    // Table that create the relation between user and plot
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "user_plot",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "plot_id"),
+        uniqueConstraints = { @UniqueConstraint(columnNames = {"user_id", "plot_id"}) }
+    )
+    private List<Plot> plotList;
 
     public User(String firstname, String lastname, String email, String password, 
         String phone, List<Role> roles, Boolean enabled, String nif, String confirmationToken,

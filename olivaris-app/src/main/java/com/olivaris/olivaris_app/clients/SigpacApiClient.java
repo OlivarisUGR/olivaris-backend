@@ -19,8 +19,14 @@ public class SigpacApiClient {
 
     private final WebClient sigpacApiWebClient;
 
-    public SigpacGeoJsonResponse getPlotEnclosures(int pr, int mu, int ag, 
-        int zo, int po, int pa
+    // SIGPAC API endpoint to get all the enclosures features from a plot
+    public SigpacGeoJsonResponse getPlotEnclosures(
+        int pr, 
+        int mu, 
+        int ag, 
+        int zo, 
+        int po, 
+        int pa
     ) {
         return sigpacApiWebClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -40,6 +46,7 @@ public class SigpacApiClient {
                 .block();
     }
 
+    // Endpoint to get all the provinces and his codes
     public Map<String, Object> getProvinceCodes() {
         return sigpacApiWebClient.get()
                 .uri("/codigossigpac/provincia.json")
@@ -56,6 +63,7 @@ public class SigpacApiClient {
                 .block();
     } 
 
+    // Endpoint to get all cities codes from a specific province
     public Map<String, Object> getCityCodes(String provinceCode) {
         return sigpacApiWebClient.get()
                 .uri("/codigossigpac/municipio{cod_prov}.json", provinceCode)

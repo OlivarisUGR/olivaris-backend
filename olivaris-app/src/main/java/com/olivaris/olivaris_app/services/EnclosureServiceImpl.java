@@ -63,7 +63,7 @@ public class EnclosureServiceImpl implements EnclosureService {
         List<Object> coordList = coordinates.get(0); 
         Coordinate[] coords = new Coordinate[coordList.size()];
 
-        for (int i = 0; i < coordList.size(); i++) {
+        for(int i = 0; i < coordList.size(); i++) {
             List<Number> point = (List<Number>) coordList.get(i);
             double lon = point.get(0).doubleValue();
             double lat = point.get(1).doubleValue();

@@ -5,16 +5,17 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClient.Builder;
 
 @Configuration
 public class WebClientConfig {
 
     @Bean
-    public WebClient.Builder webClientBuilder() {
+    public Builder webClientBuilder() {
         return WebClient.builder();
     }
 
-    // Component for the SIGPAC web client
+    // Component for the SIGPAC WebClient
     @Bean
     public WebClient sigpacApiWebClient(WebClient.Builder builder) {
         return builder
