@@ -8,32 +8,27 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.olivaris.olivaris_app.dto.CreatePlot;
-import com.olivaris.olivaris_app.dto.PlotDto;
-import com.olivaris.olivaris_app.services.PlotService;
+import com.olivaris.olivaris_app.dto.ActivityDto;
+import com.olivaris.olivaris_app.dto.CreateActivityRequest;
+import com.olivaris.olivaris_app.services.ActivityService;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
 @RestController
-@RequestMapping(value = "/api/plot")
+@RequestMapping(value = "/api/activity")
 @AllArgsConstructor
-public class PlotController {
+public class ActivityController {
 
-    private final PlotService plotService;
+    private final ActivityService actService;
 
     @PostMapping("/")
-    public ResponseEntity<PlotDto> create(@Valid @RequestBody CreatePlot request) {
-        return plotService.create(request);
+    public ResponseEntity<ActivityDto> create(@Valid @RequestBody CreateActivityRequest request) {
+        return actService.create(request);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        return plotService.delete(id);
-    }
-
-    @DeleteMapping("/{plotId}/user/{userId}")
-    public ResponseEntity<Void> deleteUserPlot(@PathVariable Long plotId, @PathVariable Long userId) {
-        return plotService.deleteUserPlot(plotId, userId);
+        return actService.delete(id);
     }
 }

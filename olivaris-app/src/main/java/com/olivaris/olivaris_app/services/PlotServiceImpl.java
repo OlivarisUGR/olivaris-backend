@@ -146,6 +146,17 @@ public class PlotServiceImpl implements PlotService {
         return ResponseEntity.noContent().build();
     }
 
+    @Transactional
+    @Override
+    public ResponseEntity<Void> deleteUserPlot(Long plotId, Long userId) {
+        UserPlot userPlotDb = userPlotRep.findByUserIdAndPlotId(userId, plotId)
+                        .orElseThrow(() -> new EntityNotFoundException("La relación entre usuario y parcela no existe"));
+        
+        userPlotRep.delete(userPlotDb);
+        
+        return ResponseEntity.noContent().build();
+    }
+
     private int getProvinceCode(String province) {
         Map<String, Object> provinces = sigpacApiClient.getProvinceCodes();
         List<Map<String, Object>> provincesList = (List<Map<String, Object>>) provinces.get("codigos");

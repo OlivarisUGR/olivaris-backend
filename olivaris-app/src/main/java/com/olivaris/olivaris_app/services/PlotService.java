@@ -10,4 +10,5 @@ public interface PlotService {
     ResponseEntity<PlotDto> create(CreatePlot request);
     Plot createPlotAndEnclosures(CreatePlot request);
     ResponseEntity<Void> delete(Long id);
+    ResponseEntity<Void> deleteUserPlot(Long plotId, Long userId);
 }

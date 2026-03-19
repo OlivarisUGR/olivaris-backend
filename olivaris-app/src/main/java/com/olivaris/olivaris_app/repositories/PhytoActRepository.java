@@ -1,0 +1,11 @@
+package com.olivaris.olivaris_app.repositories;
+
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
+
+import com.olivaris.olivaris_app.models.PhytoAct;
+
+@Repository
+public interface PhytoActRepository extends CrudRepository<PhytoAct, Long> {
+
+}
