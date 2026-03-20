@@ -1,19 +1,24 @@
 package com.olivaris.olivaris_app.services;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.olivaris.olivaris_app.dto.CreateActivityRequest;
+import com.olivaris.olivaris_app.dto.PhytoActivityDto;
+import com.olivaris.olivaris_app.dto.UpdatePhytoActReq;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 import com.olivaris.olivaris_app.models.Activity;
 import com.olivaris.olivaris_app.models.Enclosure;
 import com.olivaris.olivaris_app.models.PhytoAct;
 import com.olivaris.olivaris_app.models.User;
+import com.olivaris.olivaris_app.models.enums.ActivityStatus;
 import com.olivaris.olivaris_app.repositories.ActivityRepository;
 import com.olivaris.olivaris_app.repositories.EnclosureRepository;
 import com.olivaris.olivaris_app.repositories.UserRepository;
@@ -34,46 +39,33 @@ public class ActivityServiceImpl implements ActivityService {
     
     @Transactional
     @Override
+    @PreAuthorize("@activityValidator.checkDateAndStatus(#body)")
     public ResponseEntity<ActivityDto> create(CreateActivityRequest body) {
-        // If the activity exists -> Get and update
+        // If activity exists -> Get and update it
         // else -> create a new activity
-        Activity newAct = actRep.findByDateAndEnclosureIdAndUserIdAndType(
+        Activity act = actRep.findByDateAndEnclosureIdAndUserIdAndType(
                 body.getDate(), body.getEnclosureId(), body.getUserId(), body.getType())
-            .map(actExists ->  {
-                if(body.getDescription() != null && !body.getDescription().isBlank()) {
-                    actExists.setDescription(body.getDescription());
-                }
+            .orElseGet(() -> createNewActivity(body));
 
-                return actExists;
-            })
-            .orElseGet(() -> {
-                // Get the user and enclosure
-                User userDb = userRep.findById(body.getUserId())
-                    .orElseThrow(() -> new UserNotFoundException(body.getUserId().toString()));
-                    
-                Enclosure enclosureDb = enclosureRep.findById(body.getEnclosureId())
-                    .orElseThrow(() -> new EntityNotFoundException("El recinto no existe en la base de datos"));
+        if(body.getDescription() != null && !body.getDescription().isBlank()) {
+            act.setDescription(body.getDescription());
+        }
 
-                // Create the activity and save it on database
-                return Activity.builder()
-                    .user(userDb)
-                    .enclosure(enclosureDb)
-                    .type(body.getType())
-                    .date(body.getDate())
-                    .season(body.getSeason())
-                    .description(body.getDescription() != null ? body.getDescription() : null)
-                    .phytoAct(new ArrayList<PhytoAct>())
-                    .build();
-            });
+        if(body.getStatus() != null) {
+            act.setStatus(body.getStatus());
+        } else if(act.getStatus() == null) {
+            act.setStatus(body.getDate().isAfter(LocalDate.now()) ? 
+                ActivityStatus.PLANNED : ActivityStatus.COMPLETED);
+        }
 
         // Create the phytosanitary activities
         body.getPhytoAct().stream()
             .forEach(phytoActDto -> {
-                PhytoAct phytoAct = phytoActService.createPhytoActivity(newAct, phytoActDto);
-                newAct.getPhytoAct().add(phytoAct);
+                PhytoAct phytoAct = phytoActService.createPhytoActivity(act, phytoActDto);
+                act.getPhytoAct().add(phytoAct);
             });
         
-        Activity actDb = actRep.save(newAct);
+        Activity actDb = actRep.save(act);
         
         // Create the DTO and return the response
         ActivityDto actDto = new ActivityDto(
@@ -98,5 +90,47 @@ public class ActivityServiceImpl implements ActivityService {
         actRep.delete(actDb);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @Transactional
+    @Override
+    public ResponseEntity<PhytoActivityDto> update(Long activityId, UpdatePhytoActReq body) {
+        // Check if activity exists
+        Activity actDb = actRep.findById(activityId)
+            .orElseThrow(() -> new EntityNotFoundException("La actividad con ID " + activityId + " no existe"));
+
+        actDb.setStatus(body.getStatus());
+
+        PhytoAct phytoActDb = phytoActService.updatePhytoAct(body);
+
+        PhytoActivityDto dto = new PhytoActivityDto(
+            activityId,
+            body.getPhytoActId(),
+            "La actividad fitosanitaria ha sido actualizada con éxito"
+        );
+
+        return ResponseEntity.status(HttpStatus.OK).body(dto);
+    }
+
+    private Activity createNewActivity(CreateActivityRequest body) {
+        // Get the user and enclosure
+        User userDb = userRep.findById(body.getUserId())
+            .orElseThrow(() -> new UserNotFoundException(body.getUserId().toString()));
+            
+        Enclosure enclosureDb = enclosureRep.findById(body.getEnclosureId())
+            .orElseThrow(() -> new EntityNotFoundException("El recinto no existe en la base de datos"));
+
+        // Create the activity and save it on database
+        Activity act = Activity.builder()
+            .user(userDb)
+            .enclosure(enclosureDb)
+            .type(body.getType())
+            .date(body.getDate())
+            .season(body.getSeason())
+            .description(body.getDescription() != null ? body.getDescription() : null)
+            .phytoAct(new ArrayList<PhytoAct>())
+            .build();
+
+        return act;
     }
 }

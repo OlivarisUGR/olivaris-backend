@@ -49,12 +49,11 @@ public class PhytoAct {
     @Column(nullable = true)
     private String reason;
 
-    @NotNull(message = "{phytoAct.dose.notnull}")
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Double dose;
 
-    @NotBlank(message = "{phytoAct.doseUnit.notblank}")
-    @Column(name = "dose_unit", nullable = false)
+    // Siempre trabajan con mismo unidad ??
+    @Column(name = "dose_unit", nullable = true)
     private String doseUnit;
 
     @Column(name = "total_amount", nullable = true)
@@ -69,16 +68,14 @@ public class PhytoAct {
     @Column(name = "app_name", nullable = true)
     private String applicatorName;
 
-    @NotBlank(message = "{phytoAct.appNif.notblank}")
-    @Column(name = "app_nif", nullable = false)
+    @Column(name = "app_nif", nullable = true)
     private String applicatorNif;
 
     @NotBlank(message = "{phytoAct.crops.notblank}")
     @Column(nullable = false)
     private String crops;
 
-    @NotNull(message = "{phytoAct.area.notnull}")
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Double area;
 
     @Column(name = "created_at", nullable = false)

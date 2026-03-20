@@ -3,6 +3,7 @@ package com.olivaris.olivaris_app.dto;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.olivaris.olivaris_app.models.enums.ActivityStatus;
 import com.olivaris.olivaris_app.models.enums.ActivityType;
 
 import jakarta.persistence.EnumType;
@@ -36,6 +37,9 @@ public class CreateActivityRequest {
     @NotNull(message = "{activity.type.notnull}")
     @Enumerated(EnumType.STRING)
     private ActivityType type;
+
+    @Enumerated(EnumType.STRING)
+    private ActivityStatus status;
 
     // Phytosanitary activity info
     @Valid

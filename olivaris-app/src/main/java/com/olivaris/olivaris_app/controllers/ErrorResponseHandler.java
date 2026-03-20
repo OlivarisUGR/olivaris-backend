@@ -18,6 +18,7 @@ import com.olivaris.olivaris_app.exceptions.AuthHeaderNotValidException;
 import com.olivaris.olivaris_app.exceptions.ConfirmTokenNotExistsException;
 import com.olivaris.olivaris_app.exceptions.FieldIsNecessaryException;
 import com.olivaris.olivaris_app.exceptions.MailSenderException;
+import com.olivaris.olivaris_app.exceptions.PhytoActArgumentException;
 import com.olivaris.olivaris_app.exceptions.RoleNotExistsException;
 import com.olivaris.olivaris_app.exceptions.TokenExpiredException;
 import com.olivaris.olivaris_app.exceptions.UserAlreadyExistsException;
@@ -170,6 +171,20 @@ public class ErrorResponseHandler {
         );
 
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(error);
+    }
+
+    @ExceptionHandler({
+        IllegalArgumentException.class,
+        PhytoActArgumentException.class
+    })
+    public ResponseEntity<ErrorDto> illegalArgument(Exception ex) {
+        ErrorDto error = new ErrorDto(
+            "Dato pasado no válido", 
+            ex.getMessage(), 
+            HttpStatus.BAD_REQUEST.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
     // This method will manage the validation from input request data

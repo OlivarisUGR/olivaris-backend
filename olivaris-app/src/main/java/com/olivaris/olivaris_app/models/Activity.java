@@ -3,6 +3,7 @@ package com.olivaris.olivaris_app.models;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.olivaris.olivaris_app.models.enums.ActivityStatus;
 import com.olivaris.olivaris_app.models.enums.ActivityType;
 
 import jakarta.persistence.CascadeType;
@@ -59,7 +60,7 @@ public class Activity {
     private ActivityType type;
 
     @NotNull(message = "{activity.date.notnull}")
-    @Column(nullable = false)
+    @Column(name = "date", nullable = false)
     private LocalDate date;
 
     @Column(nullable = true)
@@ -68,6 +69,11 @@ public class Activity {
     @NotBlank(message = "{activity.season.notblank}")
     @Column(nullable = false)
     private String season;
+
+    @NotNull(message = "{activity.status.notnull}")
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ActivityStatus status;
 
     @OneToMany(mappedBy = "activity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PhytoAct> phytoAct;

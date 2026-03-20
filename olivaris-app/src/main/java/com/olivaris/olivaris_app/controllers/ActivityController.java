@@ -4,12 +4,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.olivaris.olivaris_app.dto.ActivityDto;
 import com.olivaris.olivaris_app.dto.CreateActivityRequest;
+import com.olivaris.olivaris_app.dto.PhytoActivityDto;
+import com.olivaris.olivaris_app.dto.UpdatePhytoActReq;
 import com.olivaris.olivaris_app.services.ActivityService;
 
 import jakarta.validation.Valid;
@@ -30,5 +33,13 @@ public class ActivityController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         return actService.delete(id);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PhytoActivityDto> update(
+        @PathVariable Long id,
+        @Valid @RequestBody UpdatePhytoActReq request
+    ) {
+        return actService.update(id, request);
     }
 }

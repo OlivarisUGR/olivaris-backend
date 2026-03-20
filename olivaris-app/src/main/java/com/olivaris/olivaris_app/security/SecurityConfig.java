@@ -19,7 +19,7 @@ import tools.jackson.databind.ObjectMapper;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity   // this can user the @PreAuthorize annotations
+@EnableMethodSecurity(prePostEnabled = true)
 @AllArgsConstructor
 public class SecurityConfig {
 

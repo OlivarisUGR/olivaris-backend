@@ -22,11 +22,9 @@ public class CreatePhytoActReq {
 
     private String reason;
 
-    @NotNull(message = "{phytoAct.dose.notnull}")
     @Positive(message = "{phytoAct.dose.positive}")
     private Double dose;
 
-    @NotBlank(message = "{phytoAct.doseUnit.notblank}")
     private String doseUnit;
 
     @PositiveOrZero(message = "{phytoAct.totalAmount.positiveOrZero}")
@@ -38,7 +36,6 @@ public class CreatePhytoActReq {
 
     private String applicatorName;
 
-    @NotBlank(message = "{phytoAct.appNif.notblank}")
     @Pattern(
         message = "{phytoAct.appNif.format}",
         regexp = "^[0-9]{8}[A-Za-z]$"
@@ -48,7 +45,6 @@ public class CreatePhytoActReq {
     @NotBlank(message = "{phytoAct.crops.notblank}")
     private String crops;
 
-    @NotNull(message = "{phytoAct.area.notnull}")
     @Positive(message = "{phytoAct.area.positive}")
     private Double area;
 }
