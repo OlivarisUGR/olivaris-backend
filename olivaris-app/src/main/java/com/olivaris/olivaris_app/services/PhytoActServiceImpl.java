@@ -52,10 +52,11 @@ public class PhytoActServiceImpl implements PhytoActService {
             .build();
     }
 
+    // TODO: add validations for the user who can do this
     @Transactional
     @Override
-    public PhytoAct updatePhytoAct(UpdatePhytoActReq body) {
-        PhytoAct phytoActDb = phytoActRep.findById(body.getPhytoActId())
+    public PhytoAct updatePhytoAct(Long phytoActId, UpdatePhytoActReq body) {
+        PhytoAct phytoActDb = phytoActRep.findById(phytoActId)
             .orElseThrow(() -> new EntityNotFoundException("La actividad fitosanitaria no existe"));
         
         if(body.getReason() != null) phytoActDb.setReason(body.getReason());

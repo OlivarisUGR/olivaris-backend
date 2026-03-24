@@ -28,6 +28,47 @@ public interface UserEntityRoleRepository extends CrudRepository<UserEntityRole,
     @Query("""
         SELECT uer FROM UserEntityRole uer 
         WHERE uer.user.id = :userId AND uer.enabledEntity.id = :entityId
-        """)
+    """)
     Optional<UserEntityRole> getByUserIdAndEntityId(Long userId, Long entityId);
+
+    @Query("""
+        SELECT COUNT(uer1) > 0 FROM UserEntityRole uer1, UserEntityRole uer2  
+        WHERE uer1.user.id = :userId1 AND uer2.user.id = :userId2
+            AND uer1.enabledEntity.id = uer2.enabledEntity.id
+    """)
+    boolean usersBelongToSameEntity(Long userId1, Long userId2);
+
+    @Query("""
+        SELECT COUNT(uer) > 0
+        FROM UserEntityRole uer
+        WHERE uer.user.id = :userId
+            AND uer.enabledEntity.id = :entityId
+            AND uer.writeCue = true
+            AND uer.writeRea = true
+            AND uer.readCue = true
+            AND uer.readRea = true
+    """)
+    boolean givesAllPermToEntity(Long userId, Long entityId);
+
+    @Query("""
+        SELECT COUNT(uer) > 0
+        FROM UserEntityRole uer
+        WHERE uer.user.id = :userId
+    """)
+    boolean userBelongToAnEntity(Long userId);
+
+    @Query("""
+        SELECT COUNT(uer) > 0
+        FROM UserEntityRole uer
+        WHERE uer.entityRole.id = :roleId
+            AND uer.user.id = :userId
+            AND uer.enabledEntity.id = :entityId
+    """)
+    boolean userRoleOnEnt(Long roleId, Long userId, Long entityId);
+
+    @Query("""
+       SELECT uer.enabledEntity.id FROM UserEntityRole uer
+       WHERE uer.user.id = :userId   
+    """)
+    Optional<Long> getEntityIdByUserId(Long userId);
 }

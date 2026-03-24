@@ -54,6 +54,10 @@ public class Activity {
     @JoinColumn(name = "enclosure_id", nullable = false)
     private Enclosure enclosure;
 
+    @ManyToOne
+    @JoinColumn(name = "enabled_entity_id", nullable = true)
+    private EnabledEntity entity;
+
     @NotNull(message = "{activity.type.notnull}")
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

@@ -7,5 +7,5 @@ import com.olivaris.olivaris_app.models.PhytoAct;
 
 public interface PhytoActService {
     PhytoAct createPhytoActivity(Activity activity, CreatePhytoActReq body);
-    PhytoAct updatePhytoAct(UpdatePhytoActReq body);
+    PhytoAct updatePhytoAct(Long phytoActId, UpdatePhytoActReq body);
 }

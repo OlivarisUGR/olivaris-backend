@@ -7,13 +7,13 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.olivaris.olivaris_app.dto.ErrorDto;
-import com.olivaris.olivaris_app.exceptions.AccessDeniedException;
 import com.olivaris.olivaris_app.exceptions.AuthHeaderNotValidException;
 import com.olivaris.olivaris_app.exceptions.ConfirmTokenNotExistsException;
 import com.olivaris.olivaris_app.exceptions.FieldIsNecessaryException;
@@ -144,11 +144,11 @@ public class ErrorResponseHandler {
     })
     public ResponseEntity<ErrorDto> accessDenied(Exception ex) {
         ErrorDto error = new ErrorDto(
-            "Accesso denegado al servicio",
+            "Acceso denegado al servicio",
             ex.getMessage(),
-            HttpStatus.UNAUTHORIZED.value()
+            HttpStatus.FORBIDDEN.value()
         );
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
     @ExceptionHandler(FieldIsNecessaryException.class)

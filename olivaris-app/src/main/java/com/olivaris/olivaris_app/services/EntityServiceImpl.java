@@ -133,19 +133,19 @@ public class EntityServiceImpl implements EntityService {
             userEntityRoleDb.setEntityRole(entityRoleDb);
         }
 
-        if(body.getWriteCue()) {
+        if(body.getWriteCue() != null) {
             userEntityRoleDb.setWriteCue(body.getWriteCue());
         }
 
-        if(body.getWriteRea()) {
+        if(body.getWriteRea() != null) {
             userEntityRoleDb.setWriteRea(body.getWriteRea());
         }
 
-        if(body.getReadCue()) {
+        if(body.getReadCue() != null) {
             userEntityRoleDb.setReadCue(body.getReadCue());
         }
 
-        if(body.getReadRea()) {
+        if(body.getReadRea() != null) {
             userEntityRoleDb.setReadRea(body.getReadRea());
         }
 

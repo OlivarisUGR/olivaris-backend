@@ -2,7 +2,6 @@ package com.olivaris.olivaris_app.dto;
 
 import com.olivaris.olivaris_app.models.enums.ActivityStatus;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,10 +11,6 @@ import lombok.Getter;
 public class UpdatePhytoActReq {
     private String description;
     private ActivityStatus status;
-
-    @NotNull(message = "{phytoAct.id.notnull}")
-    private Long phytoActId;
-
     private String reason;
     private Double dose;
     private String doseUnit;

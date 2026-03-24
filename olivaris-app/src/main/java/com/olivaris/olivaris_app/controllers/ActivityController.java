@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.olivaris.olivaris_app.dto.ActivityDto;
@@ -25,9 +26,14 @@ public class ActivityController {
 
     private final ActivityService actService;
 
-    @PostMapping("/")
-    public ResponseEntity<ActivityDto> create(@Valid @RequestBody CreateActivityRequest request) {
-        return actService.create(request);
+    @PostMapping("/user/{userId}/enclosure/{enclosureId}")
+    public ResponseEntity<ActivityDto> create(
+        @PathVariable Long userId,
+        @PathVariable Long enclosureId,
+        @RequestParam(required = false) Long entityId,
+        @Valid @RequestBody CreateActivityRequest request
+    ) {
+        return actService.create(userId, enclosureId, entityId, request);
     }
 
     @DeleteMapping("/{id}")
@@ -35,11 +41,12 @@ public class ActivityController {
         return actService.delete(id);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{activityId}")
     public ResponseEntity<PhytoActivityDto> update(
-        @PathVariable Long id,
+        @PathVariable Long activityId,
+        @RequestParam(required = true) Long phytoActId,
         @Valid @RequestBody UpdatePhytoActReq request
     ) {
-        return actService.update(id, request);
+        return actService.update(activityId, phytoActId, request);
     }
 }

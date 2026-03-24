@@ -19,12 +19,6 @@ import lombok.Getter;
 @Getter
 public class CreateActivityRequest {
 
-    @NotNull(message = "{activity.userId.notnull}")
-    private Long userId;
-
-    @NotNull(message = "{activity.enclosureId.notnull}")
-    private Long enclosureId;
-
     @NotNull(message = "{activity.date.notnull}")
     private LocalDate date;
 
