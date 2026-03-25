@@ -55,7 +55,14 @@ public interface UserEntityRoleRepository extends CrudRepository<UserEntityRole,
         FROM UserEntityRole uer
         WHERE uer.user.id = :userId
     """)
-    boolean userBelongToAnEntity(Long userId);
+    boolean userBelongToAnyEntity(Long userId);
+
+    @Query("""
+        SELECT COUNT(uer) > 0 FROM UserEntityRole uer  
+        WHERE uer.user.id = :userId 
+            AND uer.enabledEntity.id = :entityId   
+    """)
+    boolean userBelongToEntity(Long userId, Long entityId);
 
     @Query("""
         SELECT COUNT(uer) > 0

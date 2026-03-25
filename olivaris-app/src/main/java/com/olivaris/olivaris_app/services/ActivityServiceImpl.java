@@ -51,8 +51,8 @@ public class ActivityServiceImpl implements ActivityService {
     ) {
         // If activity exists -> Get and update it
         // else -> create a new activity
-        Activity act = actRep.findByDateAndEnclosureIdAndUserIdAndType(
-                body.getDate(), enclosureId, userId, body.getType())
+        Activity act = actRep.findByDateAndEnclosureIdAndUserIdAndTypeAndEntityId(
+                body.getDate(), enclosureId, userId, body.getType(), entityId)
             .orElseGet(() -> createNewActivity(userId, enclosureId, entityId, body));
 
         if(body.getDescription() != null && !body.getDescription().isBlank()) {
@@ -113,9 +113,15 @@ public class ActivityServiceImpl implements ActivityService {
         Activity actDb = actRep.findById(activityId)
             .orElseThrow(() -> new EntityNotFoundException("La actividad con ID " + activityId + " no existe"));
 
+        if(body.getDescription() != null) {
+            actDb.setDescription(body.getDescription());
+        }
+
         // If the activity is completed, his status can't be updated
-        if(!actDb.getStatus().equals(ActivityStatus.COMPLETED)) {
+        if(body.getStatus() != null && !actDb.getStatus().equals(ActivityStatus.COMPLETED)) {
             actDb.setStatus(body.getStatus());
+        } else {
+            throw new IllegalArgumentException("No se puede modificar el estado de la actividad");
         }
 
         PhytoAct phytoActDb = phytoActService.updatePhytoAct(phytoActId, body);

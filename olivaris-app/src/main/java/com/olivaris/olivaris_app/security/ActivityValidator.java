@@ -1,6 +1,7 @@
 package com.olivaris.olivaris_app.security;
 
 import java.time.LocalDate;
+import java.time.Year;
 import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
@@ -28,6 +29,8 @@ public class ActivityValidator {
     private final ActivityRepository actRep;
     private final EntityRoleRepository entRoleRep;
 
+    // An activity with future date can't be completed
+    // An activity with past date can't be planned
     public boolean checkDateAndStatus(CreateActivityRequest body) {
         if(body.getDate().isAfter(LocalDate.now().plusYears(LIMIT_DATE))) {
             throw new IllegalArgumentException("No puedes planificar actividades a más de un año vista");
@@ -37,6 +40,16 @@ public class ActivityValidator {
         } else if(body.getDate().isAfter(LocalDate.now()) && body.getStatus() != null &&
                     body.getStatus().equals(ActivityStatus.COMPLETED)) {
             throw new IllegalArgumentException("No puedes completar actividades para días futuros");
+        }
+
+        return true;
+    }
+
+    public boolean correctSeasonDate(int season) {
+        int nowYear = Year.now().getValue();
+
+        if(season < nowYear) {
+            throw new IllegalArgumentException("No se puede crear una actividad para campañas de años anteriores");
         }
 
         return true;
@@ -60,18 +73,33 @@ public class ActivityValidator {
         }
 
         boolean isSelf = currentUserId.equals(userIdToAssign);
-        boolean hasGivenPerm = userEntRoleRep.givesAllPermToEntity(userIdToAssign, entityId);
-        boolean belongToEntity = userEntRoleRep.userBelongToAnEntity(currentUserId);
+        boolean belongToAnyEntity = userEntRoleRep.userBelongToAnyEntity(currentUserId);
 
         // Entity admin or farmer user can create an activity for himself if he doesn't belong to an entity or
         // he belong to the entity but he doesn't give permission
-        // TODO: revisar esta parte ya que permite a un farmer crear una actividad perteneciendo a una entidad distinta
         if(isSelf) {
-            return (belongToEntity && !hasGivenPerm) || !belongToEntity;
+            if(!belongToAnyEntity && entityId == null) {
+                return true;
+            }
+
+            // If the user belong to an entity, it is necessary the entity Id to search the permissions given
+            if(entityId == null) {
+                return false;
+            }
+            
+            boolean userBelongToEnt = userEntRoleRep.userBelongToEntity(currentUserId, entityId);
+            boolean hasGivenPerm = userEntRoleRep.givesAllPermToEntity(userIdToAssign, entityId);
+
+            return userBelongToEnt && !hasGivenPerm;
         }
 
-        // The activity will be created for a different user than the current. In this case, the user that
-        // creates the activity must have admin role on the entity
+        // The activity will be created for a different user than the current if the user that
+        // creates the activity have admin role on the entity and the other user has given permissions
+        if(entityId == null) {
+            return false;
+        }
+
+        boolean hasGivenPerm = userEntRoleRep.givesAllPermToEntity(userIdToAssign, entityId);
         Long roleAdminId = entRoleRep.getRoleIdByName(EntityRoleTypes.ROLE_ADMIN.toString())
             .orElseThrow(() -> new EntityNotFoundException("El rol de la entidad no existe"));
 
@@ -87,7 +115,8 @@ public class ActivityValidator {
     }
 
     public boolean canCreateActivities(Long userId, Long entityId, CreateActivityRequest body) {
-        return this.checkAssigmentToUser(userId, entityId) && this.checkDateAndStatus(body);
+        return this.checkAssigmentToUser(userId, entityId) && this.checkDateAndStatus(body) &&
+            correctSeasonDate(Integer.parseInt(body.getSeason()));
     }
 
     public boolean canUpdateDeleteAct(Long activityId) {

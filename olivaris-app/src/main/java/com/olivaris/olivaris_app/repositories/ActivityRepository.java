@@ -13,8 +13,8 @@ import com.olivaris.olivaris_app.models.enums.ActivityType;
 @Repository
 public interface ActivityRepository extends CrudRepository<Activity, Long> {
 
-    Optional<Activity> findByDateAndEnclosureIdAndUserIdAndType(
-        LocalDate date, Long enclosureId, Long userId, ActivityType type
+    Optional<Activity> findByDateAndEnclosureIdAndUserIdAndTypeAndEntityId(
+        LocalDate date, Long enclosureId, Long userId, ActivityType type, Long entityId
     );
 
     @Query("""

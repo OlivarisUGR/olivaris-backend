@@ -32,7 +32,7 @@ import lombok.Setter;
     name = "activity",
     uniqueConstraints = @UniqueConstraint(
         name = "unique_constraint_activity",
-        columnNames = {"user_id", "enclosure_id", "type", "date"}
+        columnNames = {"user_id", "enclosure_id", "type", "date", "enabled_entity_id"}
     )
 )
 @AllArgsConstructor
