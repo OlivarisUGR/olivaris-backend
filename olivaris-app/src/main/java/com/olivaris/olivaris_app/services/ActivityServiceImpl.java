@@ -3,6 +3,7 @@ package com.olivaris.olivaris_app.services;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.olivaris.olivaris_app.dto.ActivityDto;
 import com.olivaris.olivaris_app.dto.CreateActivityRequest;
 import com.olivaris.olivaris_app.dto.PhytoActivityDto;
 import com.olivaris.olivaris_app.dto.UpdatePhytoActReq;
@@ -28,7 +30,7 @@ import com.olivaris.olivaris_app.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 
-import com.olivaris.olivaris_app.dto.ActivityDto;
+import com.olivaris.olivaris_app.dto.ActivityCreatedResponse;
 
 @Service
 @AllArgsConstructor
@@ -43,7 +45,7 @@ public class ActivityServiceImpl implements ActivityService {
     @Transactional
     @Override
     @PreAuthorize("@activityValidator.canCreateActivities(#userId, #entityId, #body)")
-    public ResponseEntity<ActivityDto> create(
+    public ResponseEntity<ActivityCreatedResponse> create(
         Long userId,
         Long enclosureId,
         Long entityId,
@@ -76,7 +78,7 @@ public class ActivityServiceImpl implements ActivityService {
         Activity actDb = actRep.save(act);
         
         // Create the DTO and return the response
-        ActivityDto actDto = new ActivityDto(
+        ActivityCreatedResponse actDto = new ActivityCreatedResponse(
             actDb.getId(),
             actDb.getPhytoAct().stream()
                 .map(pA -> pA.getId())
@@ -170,5 +172,23 @@ public class ActivityServiceImpl implements ActivityService {
             .build();
 
         return act;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public ResponseEntity<List<ActivityDto>> getEnclosuresAct(Long enclosureId, String season) {
+        List<Activity> enclosuresAct = null;
+
+        if(season == null) {
+            enclosuresAct = actRep.findByEnclosureId(enclosureId);
+        } else {
+            enclosuresAct = actRep.findByEnclosureIdAndSeason(enclosureId, season);
+        }
+
+        List<ActivityDto> enclosuresActDto = enclosuresAct.stream()
+            .map(ActivityDto::fromEntity)
+            .toList();
+        
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(enclosuresActDto);
     }
 }

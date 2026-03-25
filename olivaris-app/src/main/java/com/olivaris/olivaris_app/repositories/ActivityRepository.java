@@ -1,6 +1,7 @@
 package com.olivaris.olivaris_app.repositories;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.Query;
@@ -28,4 +29,8 @@ public interface ActivityRepository extends CrudRepository<Activity, Long> {
        WHERE act.id = :activityId   
     """)
     Optional<Long> getEntityIdByActId(Long activityId);
+
+    List<Activity> findByEnclosureId(Long enclosureId); 
+
+    List<Activity> findByEnclosureIdAndSeason(Long enclosureId, String season); 
 }

@@ -1,14 +1,17 @@
 package com.olivaris.olivaris_app.services;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 
+import com.olivaris.olivaris_app.dto.ActivityDto;
 import com.olivaris.olivaris_app.dto.CreateActivityRequest;
 import com.olivaris.olivaris_app.dto.PhytoActivityDto;
 import com.olivaris.olivaris_app.dto.UpdatePhytoActReq;
-import com.olivaris.olivaris_app.dto.ActivityDto;
+import com.olivaris.olivaris_app.dto.ActivityCreatedResponse;
 
 public interface ActivityService {
-    ResponseEntity<ActivityDto> create(
+    ResponseEntity<ActivityCreatedResponse> create(
         Long userId,
         Long enclosureId,
         Long entityId,
@@ -22,4 +25,6 @@ public interface ActivityService {
         Long phytoActId,
         UpdatePhytoActReq body
     );
+
+    ResponseEntity<List<ActivityDto>> getEnclosuresAct(Long enclosureId, String season);
 }

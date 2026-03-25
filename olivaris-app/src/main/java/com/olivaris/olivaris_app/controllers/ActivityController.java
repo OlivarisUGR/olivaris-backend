@@ -1,5 +1,7 @@
 package com.olivaris.olivaris_app.controllers;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.olivaris.olivaris_app.dto.ActivityCreatedResponse;
 import com.olivaris.olivaris_app.dto.ActivityDto;
 import com.olivaris.olivaris_app.dto.CreateActivityRequest;
 import com.olivaris.olivaris_app.dto.PhytoActivityDto;
@@ -18,6 +21,8 @@ import com.olivaris.olivaris_app.services.ActivityService;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+
 
 @RestController
 @RequestMapping(value = "/api/activity")
@@ -27,7 +32,7 @@ public class ActivityController {
     private final ActivityService actService;
 
     @PostMapping("/user/{userId}/enclosure/{enclosureId}")
-    public ResponseEntity<ActivityDto> create(
+    public ResponseEntity<ActivityCreatedResponse> create(
         @PathVariable Long userId,
         @PathVariable Long enclosureId,
         @RequestParam(required = false) Long entityId,
@@ -41,12 +46,22 @@ public class ActivityController {
         return actService.delete(id);
     }
 
-    @PutMapping("/{activityId}")
-    public ResponseEntity<PhytoActivityDto> update(
+    @PutMapping("/{activityId}/phytoAct/{phytoActId}")
+    public ResponseEntity<PhytoActivityDto> updatePhytoAct(
         @PathVariable Long activityId,
-        @RequestParam(required = true) Long phytoActId,
+        @PathVariable Long phytoActId,
         @Valid @RequestBody UpdatePhytoActReq request
     ) {
         return actService.update(activityId, phytoActId, request);
     }
+
+    // If season != null -> get enclosure activities from that season
+    @GetMapping("/enclosure/{enclosureId}")
+    public ResponseEntity<List<ActivityDto>> getEnclosuresAct(
+        @PathVariable Long enclosureId,
+        @RequestParam(required = false) String season
+    ) {
+        return actService.getEnclosuresAct(enclosureId, season);
+    }
+    
 }
