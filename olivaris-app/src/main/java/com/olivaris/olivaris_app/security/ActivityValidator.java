@@ -58,11 +58,6 @@ public class ActivityValidator {
     public boolean checkAssigmentToUser(Long userIdToAssign, Long entityId) {
         // Get the current user logued on system
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        
-        if(auth == null || !(auth.getPrincipal() instanceof CustomUserDetails)) {
-            return false;
-        }
-
         CustomUserDetails customUser = (CustomUserDetails) auth.getPrincipal();
         Long currentUserId = customUser.getId();
 
@@ -75,8 +70,8 @@ public class ActivityValidator {
         boolean isSelf = currentUserId.equals(userIdToAssign);
         boolean belongToAnyEntity = userEntRoleRep.userBelongToAnyEntity(currentUserId);
 
-        // Entity admin or farmer user can create an activity for himself if he doesn't belong to an entity or
-        // he belong to the entity but he doesn't give permission
+        // User can creates an activity for himself if he doesn't belong to an entity or
+        // he belong to the entity but he hasn't given permission
         if(isSelf) {
             if(!belongToAnyEntity && entityId == null) {
                 return true;
@@ -88,7 +83,7 @@ public class ActivityValidator {
             }
             
             boolean userBelongToEnt = userEntRoleRep.userBelongToEntity(currentUserId, entityId);
-            boolean hasGivenPerm = userEntRoleRep.givesAllPermToEntity(userIdToAssign, entityId);
+            boolean hasGivenPerm = userEntRoleRep.givesAllPermToEntity(currentUserId, entityId);
 
             return userBelongToEnt && !hasGivenPerm;
         }
@@ -122,11 +117,6 @@ public class ActivityValidator {
     public boolean canUpdateDeleteAct(Long activityId) {
         // Get the current user logued on system
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if(auth == null || !(auth.getPrincipal() instanceof CustomUserDetails)) {
-            return false;
-        }
-
         CustomUserDetails customUser = (CustomUserDetails) auth.getPrincipal();
         Long currentUserId = customUser.getId();
 
@@ -145,15 +135,15 @@ public class ActivityValidator {
         Optional<Long> optEntityId = actRep.getEntityIdByActId(activityId);
 
         // If the owner is the same than the current user and he doesn't belong to an entity or he belongs
-        // to an entity but he doesn't give permission -> can create update / delete activity
+        // to an entity but he doesn't give permission -> can update / delete activity
         if(currentUserId.equals(ownerId)) {
             return optEntityId
                 .map(entId -> !userEntRoleRep.givesAllPermToEntity(currentUserId, entId))
                 .orElse(true); 
         }
 
-        // If the owner is different to the current user, owner gives permissions to entity and the current user belong 
-        // to the same entity with admin role -> can update / delete activity
+        // If the owner is different to the current user, owner gives permissions to entity and the current 
+        // user belong to the same entity with admin role -> can update / delete activity
         return optEntityId
             .map(entId -> {
                 Long roleAdminId = entRoleRep.getRoleIdByName(EntityRoleTypes.ROLE_ADMIN.toString())

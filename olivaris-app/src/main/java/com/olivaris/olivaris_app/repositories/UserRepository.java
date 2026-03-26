@@ -15,23 +15,32 @@ public interface UserRepository extends CrudRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     @Query("""
-            SELECT u.email FROM User u
-            JOIN u.roles r
-            WHERE r.name = :roleName
-        """)
+        SELECT u.email FROM User u
+        JOIN u.roles r
+        WHERE r.name = :roleName
+    """)
     List<String> getEmailByRol(String roleName);
 
     @Query("""
-           SELECT DISTINCT u.email FROM User u
-           JOIN u.roles sr
-           JOIN u.userEntity uer
-           JOIN uer.enabledEntity ee
-           JOIN uer.entityRole er
-           WHERE sr.name = :systemRole
-                AND ee.nif = :entityNif
-                AND er.name = :entityRole
-        """)
+        SELECT DISTINCT u.email FROM User u
+        JOIN u.roles sr
+        JOIN u.userEntity uer
+        JOIN uer.enabledEntity ee
+        JOIN uer.entityRole er
+        WHERE sr.name = :systemRole
+            AND ee.nif = :entityNif
+            AND er.name = :entityRole
+    """)
     List<String> getEmailEntityAdmins(String systemRole, String entityRole, String entityNif);
 
     Optional<User> findByConfirmationToken(String confirmationToken);
+
+    @Query("""
+        SELECT DISTINCT u.email
+        FROM User u
+        JOIN u.userEntity uer
+        WHERE uer.entityRole.name = :entityRoleName
+            AND uer.enabledEntity.nif = :entityNif
+    """)
+    List<String> getEntitiesAdminsEmail(String entityRoleName, String entityNif);
 }

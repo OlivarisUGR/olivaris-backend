@@ -8,25 +8,20 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.olivaris.olivaris_app.dto.RegisterRequest;
 import com.olivaris.olivaris_app.dto.UserDto;
-import com.olivaris.olivaris_app.exceptions.FieldIsNecessaryException;
 import com.olivaris.olivaris_app.exceptions.RoleNotExistsException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
-import com.olivaris.olivaris_app.models.EnabledEntity;
 import com.olivaris.olivaris_app.models.Role;
 import com.olivaris.olivaris_app.models.User;
 import com.olivaris.olivaris_app.models.enums.RoleTypes;
 import com.olivaris.olivaris_app.repositories.EntityRepository;
 import com.olivaris.olivaris_app.repositories.RoleRepository;
 import com.olivaris.olivaris_app.repositories.UserRepository;
-
-import jakarta.persistence.EntityNotFoundException;
 
 
 @Service
@@ -37,9 +32,7 @@ public class UserServiceImpl implements UserService{
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final String urlConfirm;
-    private final String urlConfirmAdmin;
     private final RoleRepository roleRep;
-    private final EntityRepository entityRep;
 
     // Using this constructor because @Value does not injected automatically by Springboot
     // if @AllArgsConstructor is used
@@ -58,9 +51,7 @@ public class UserServiceImpl implements UserService{
         this.passwordEncoder = passwordEncoder;     
         this.emailService = emailService;    
         this.urlConfirm = urlConfirm;   
-        this.urlConfirmAdmin = urlConfirmAdmin; 
         this.roleRep = roleRep;   
-        this.entityRep = entityRep;  
     }
 
     @Transactional
@@ -71,21 +62,11 @@ public class UserServiceImpl implements UserService{
                             request.getPhone() : null;
         List<Role> roles = new ArrayList<>();
 
-        // If there isn't a rol on request list, farmer role will given by default
-        if(request.getRoles() == null) {
-            Role farmerRole = roleRep.findByName(RoleTypes.ROLE_FARMER.toString())
-                                .orElseThrow(() -> new RoleNotExistsException(RoleTypes.ROLE_FARMER.toString()));
+        // Basic role will given by default
+        Role basicRole = roleRep.findByName(RoleTypes.ROLE_BASIC.toString())
+                                .orElseThrow(() -> new RoleNotExistsException(RoleTypes.ROLE_BASIC.toString()));
 
-            roles.add(farmerRole);
-        } else {
-            request.getRoles().stream()
-            .forEach(r -> {
-                Role roleDb = roleRep.findByName(r.toString())
-                                .orElseThrow(() -> new RoleNotExistsException(r.toString()));
-                
-                roles.add(roleDb);
-            });
-        }
+        roles.add(basicRole);
                 
         // Create an admin (TODO: add a script)
         // optionalRole = roleRep.findByName(RoleTypes.ROLE_ADMIN.toString());
@@ -112,43 +93,27 @@ public class UserServiceImpl implements UserService{
 
         User savedUser = userRep.save(newUser);
 
-        // Send the email confirmation to the farmer user email.
-        // If the user to create will be an entity_admin, send the email to the admins system and others
-        // entity_admin that belong to the same entity
-        Boolean isEntityAdmin = roles.stream().anyMatch(r -> 
-            r.getName().equals(RoleTypes.ROLE_ENTITY_ADMIN.toString())
-        );
-
-        if(!isEntityAdmin) {
-            String url = urlConfirm + token;
-            emailService.sendEmailToOthers(savedUser.getEmail(), url, savedUser.getFirstname());
-        } else if(request.getEntityNif() == null) {
-            throw new FieldIsNecessaryException("El NIF de la entidad es necesario");
-        } else {
-            EnabledEntity entity = entityRep.findByNif(request.getEntityNif())
-                            .orElseThrow(() -> new EntityNotFoundException(
-                                            "No existe una entidad para el NIF especificado"
-                                        ));
-
-            String url = urlConfirmAdmin + token + "&entityId=" + entity.getId();
-            emailService.sendEmailToAdmins(url, request.getEntityNif(), savedUser.getEmail());
-        }
+        // TODO: sacar de aqui el send to email y devolver directamente el usuario creado. El auth service ahora
+        // tiene dos metodos segun lo que se vaya a registrar (entity admin o basic) y esos metodos llaman a 
+        // este registro, teniendo cada uno su lógica
+        // TODO: hacer una nueva migración que quite el ENTITY_ADMIN role y los actualice por ROLE_BASIC
+        // Send the email confirmation to the user.
+        String url = urlConfirm + token;
+        emailService.sendEmailToOthers(savedUser.getEmail(), url, savedUser.getFirstname());
 
         return savedUser;
     }
 
     @Transactional
     @Override
-    @PreAuthorize("@userSecurityValidator.canCreateUser(#request)")
-    public ResponseEntity<UserDto> create(RegisterRequest request) {
+    public ResponseEntity<UserDto> createBasicUser(RegisterRequest request) {
         // Create the user and saved him on database
         String phone = request.getPhone() != null ? 
                             request.getPhone() : null;
-        List<Role> roles = request.getRoles().stream()
-                            .map(roleType -> roleRep.findByName(roleType.toString())
-                                        .orElseThrow(() -> new RoleNotExistsException(roleType.toString()))
-                            )
-                            .toList();
+        Role roles = roleRep.findByName(RoleTypes.ROLE_BASIC.toString())
+                                .orElseThrow(() -> new RoleNotExistsException(
+                                    RoleTypes.ROLE_BASIC.toString()
+                                ));
 
         User newUser = new User(
             request.getFirstname(),
@@ -156,7 +121,7 @@ public class UserServiceImpl implements UserService{
             request.getEmail(),
             passwordEncoder.encode(request.getPassword()),
             phone,
-            roles,
+            List.of(roles),
             true,
             request.getNif(),
             null,
@@ -171,13 +136,42 @@ public class UserServiceImpl implements UserService{
 
     @Transactional
     @Override
-    @PreAuthorize("@userSecurityValidator.canDeleteUser(#id)")
     public ResponseEntity<Void> delete(Long id) {
         User userToDelete = userRep.findById(id)
-                        .orElseThrow(() -> new UserNotFoundException(id.toString()));
+                        .orElseThrow(() -> new UserNotFoundException(
+                            "El usuario no existe en el sistema"
+                        ));
                         
         userRep.delete(userToDelete);
 
         return ResponseEntity.noContent().build();
+    }
+
+    // TODO: add a validation (id != null, user corrects)
+    @Transactional(readOnly = true)
+    @Override
+    public ResponseEntity<UserDto> getById(Long id) {
+        User userDb = userRep.findById(id)
+            .orElseThrow(() -> new UserNotFoundException(
+                "El usuario no existe en el sistema"
+            ));
+        
+        UserDto userDto = UserDto.fromEntity(userDb);
+        
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userDto);
+    }
+
+    // TODO: add a validation (email != null, user corrects)
+    @Transactional(readOnly = true)
+    @Override
+    public ResponseEntity<UserDto> getByEmail(String email) {
+        User userDb = userRep.findByEmail(email)    
+            .orElseThrow(() -> new UserNotFoundException(
+                "El usuario no existe en el sistema"
+            ));
+        
+        UserDto userDto = UserDto.fromEntity(userDb);
+        
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userDto);
     }
 }

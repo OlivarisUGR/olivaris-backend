@@ -7,7 +7,6 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Polygon;
 
 import com.olivaris.olivaris_app.models.Enclosure;
-import com.olivaris.olivaris_app.models.Plot;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,31 +15,21 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class PlotDto {
-    
-    private Long id;
-    private String provinceCode;
-    private String cityCode;
-    private String polygonCode;
-    private String plotNum;
-    private String landRegister;
-    private Double area;
-    private GeoJsonPolygonDto polygon;
-    private List<Long> enclosuresId;
+public class EnclosureDto {
 
-    public static PlotDto fromEntity(Plot plot) {
-        return new PlotDto(
-            plot.getId(),
-            plot.getProvinceCode(),
-            plot.getCityCode(),
-            plot.getPolygonCode(),
-            plot.getPlotNum(),
-            plot.getLandRegister(),
-            plot.getArea(),
-            toGeoJson(plot.getGeometry()),
-            plot.getEnclosures().stream()
-                .map(Enclosure::getId)
-                .toList()
+    private Long id;
+    private String name;
+    private Double area;
+    private String sigpacUse;
+    private GeoJsonPolygonDto polygon;
+
+    public static EnclosureDto fromEntity(Enclosure enclosure) {
+        return new EnclosureDto(
+            enclosure.getId(),
+            enclosure.getName(),
+            enclosure.getArea(),
+            enclosure.getSigpacUse(),
+            toGeoJson(enclosure.getGeometry())
         );
     }
 

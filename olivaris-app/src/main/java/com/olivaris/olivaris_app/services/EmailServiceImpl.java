@@ -56,9 +56,8 @@ public class EmailServiceImpl implements EmailService {
                 emailText
             ));
 
-        // Send an email to all entity admin that belong to the same entity as an admin
-        List<String> entityAdminEmails = userRep.getEmailEntityAdmins(
-            RoleTypes.ROLE_ENTITY_ADMIN.toString(), 
+        // Send an email to all user that belong to the same entity as an admin
+        List<String> entityAdminEmails = userRep.getEntitiesAdminsEmail(
             EntityRoleTypes.ROLE_ADMIN.toString(), 
             entityNif
         );

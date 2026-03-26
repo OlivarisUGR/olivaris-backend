@@ -70,7 +70,9 @@ public class EntityServiceImpl implements EntityService {
         CreateUserEntity body
     ) {
         User userDb = userRep.findById(userId)
-                        .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+                        .orElseThrow(() -> new UserNotFoundException(
+                            "El usuario no existe en el sistema"
+                        ));
 
         EnabledEntity entityDb = entityRep.findById(entityId)
                                     .orElseThrow(() -> new EntityNotFoundException(
@@ -88,7 +90,7 @@ public class EntityServiceImpl implements EntityService {
         Boolean readRea = null;
 
         // If role is farmer -> check the permissions from request body
-        // Else is admin role -> permissions will be null
+        // Else if admin role -> permissions will be null
         if(entityRoleDb.getName().equals(EntityRoleTypes.ROLE_FARMER.toString())) {
             writeCue = body.getWriteCue() != null ? body.getWriteCue() : false;
             writeRea = body.getWriteRea() != null ? body.getWriteRea() : false;

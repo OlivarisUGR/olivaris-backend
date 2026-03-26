@@ -34,9 +34,10 @@ public class SecurityConfig {
             .authorizeHttpRequests(request -> request
                 // Allow all requests to auth endpoints
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/user/**").hasAnyRole("ADMIN", "ENTITY_ADMIN")
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/entity/").hasRole("ADMIN")
-                .requestMatchers("/api/entity/{entityId}/**").hasAnyRole("ADMIN", "ENTITY_ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/plot/{id}").hasRole("ADMIN")
+                .requestMatchers("/api/entity/{entityId}/**").hasAnyRole("ADMIN", "BASIC")
                 .anyRequest()
                 .authenticated()
             )

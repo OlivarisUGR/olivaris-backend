@@ -11,7 +11,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CreateUserEntity {
-    @NotNull(message = "{entity.role.notblank}")
+
+    @NotNull(message = "{entity.role.notnull}")
     private EntityRoleTypes entityRole;
 
     private Boolean writeCue;

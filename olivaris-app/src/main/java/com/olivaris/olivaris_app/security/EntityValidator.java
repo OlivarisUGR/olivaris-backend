@@ -20,35 +20,29 @@ public class EntityValidator {
     private final UserEntityRoleRepository userEntityRoleRep;
 
     public boolean canOperateWithEntity(Long entityId) {
-        boolean isCurrentAdmin = this.currentUserHasRole(RoleTypes.ROLE_ADMIN);
-        boolean isCurrentEntityAdmin = this.currentUserHasRole(RoleTypes.ROLE_ENTITY_ADMIN);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
 
-        // Only user with Admin or EntityAdmin rol can access
-        if(!(isCurrentAdmin || isCurrentEntityAdmin)) {
-            return false;
+        // Admin role can operate 
+        if(userHasRole(userDetails, RoleTypes.ROLE_ADMIN)) {
+            return true;
         }
 
-        // If current user is an entity admin, he must have the admin role on the entity
-        if(isCurrentEntityAdmin && !isCurrentAdmin) {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-            EntityRole entityRole = userEntityRoleRep.getEntityRole(userDetails.getId(), entityId)
-                                                        .orElseThrow(() -> new EntityNotFoundException(
-                                                            "No se ha encontrado el usuario asignado a la entidad"
-                                                        ));
-            
-            // Only user that has ADMIN role on the entity can access
-            if(!entityRole.getName().equals(EntityRoleTypes.ROLE_ADMIN.toString())) {
-                return false;
-            }
+        // If current user has basic role, he must have the admin role on the entity
+        EntityRole entityRole = userEntityRoleRep.getEntityRole(userDetails.getId(), entityId)
+                                                    .orElseThrow(() -> new EntityNotFoundException(
+                                                        "No se ha encontrado el usuario asignado a la entidad"
+                                                    ));
+        
+        if(entityRole.getName().equals(EntityRoleTypes.ROLE_ADMIN.toString())) {
+            return true;
         }
         
-        return true;
+        return false;
     }
 
-    private boolean currentUserHasRole(RoleTypes role) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth.getAuthorities().stream()
+    private boolean userHasRole(CustomUserDetails userDetails, RoleTypes role) {
+        return userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals(role.toString()));
     }
 }

@@ -10,6 +10,7 @@ import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.operation.union.CascadedPolygonUnion;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.olivaris.olivaris_app.clients.SigpacApiClient;
 import com.olivaris.olivaris_app.dto.CreatePlot;
 import com.olivaris.olivaris_app.dto.PlotDto;
+import com.olivaris.olivaris_app.dto.PlotEnclosuresDto;
 import com.olivaris.olivaris_app.dto.SigpacGeoJsonResponse;
 import com.olivaris.olivaris_app.models.CustomUserDetails;
 import com.olivaris.olivaris_app.models.Enclosure;
@@ -139,7 +141,9 @@ public class PlotServiceImpl implements PlotService {
     @Override
     public ResponseEntity<Void> delete(Long id) {
         Plot plotDb = plotRep.findById(id)
-                        .orElseThrow(() -> new EntityNotFoundException("La parcela no existe en la base de datos"));
+                        .orElseThrow(() -> new EntityNotFoundException(
+                            "La parcela no existe en la base de datos"
+                        ));
         
         plotRep.delete(plotDb);
         
@@ -148,13 +152,42 @@ public class PlotServiceImpl implements PlotService {
 
     @Transactional
     @Override
+    @PreAuthorize("@plotValidator.canDeleteUserToPlot(#userId)")
     public ResponseEntity<Void> deleteUserPlot(Long plotId, Long userId) {
         UserPlot userPlotDb = userPlotRep.findByUserIdAndPlotId(userId, plotId)
-                        .orElseThrow(() -> new EntityNotFoundException("La relación entre usuario y parcela no existe"));
+                        .orElseThrow(() -> new EntityNotFoundException(
+                            "La relación entre usuario y parcela no existe"
+                        ));
         
         userPlotRep.delete(userPlotDb);
         
         return ResponseEntity.noContent().build();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public ResponseEntity<PlotDto> getPlot(Long plotId) {
+        Plot plotDb = plotRep.findById(plotId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "La parcela no existe en el sistema"
+            ));
+
+        PlotDto plotDto = PlotDto.fromEntity(plotDb);
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(plotDto);   
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public ResponseEntity<PlotEnclosuresDto> getPlotEnclosures(Long plotId) {
+        Plot plotDb = plotRep.findById(plotId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "La parcela no existe en el sistema"
+            ));
+        
+        PlotEnclosuresDto plotEnclosuresDto = PlotEnclosuresDto.fromEntity(plotDb);
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(plotEnclosuresDto);   
     }
 
     private int getProvinceCode(String province) {

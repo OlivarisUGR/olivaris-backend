@@ -137,6 +137,29 @@ public class ActivityServiceImpl implements ActivityService {
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
+    // TODO: add validation
+    @Transactional(readOnly = true)
+    @Override
+    public ResponseEntity<List<ActivityDto>> getEnclosuresActByUser(
+        Long userId, 
+        Long enclosureId, 
+        String season
+    ) {
+        List<Activity> enclosuresAct = null;
+
+        if(season == null) {
+            enclosuresAct = actRep.findByEnclosureIdAndUserId(enclosureId, userId);
+        } else {
+            enclosuresAct = actRep.findByEnclosureIdAndSeasonAndUserId(enclosureId, season, userId);
+        }
+
+        List<ActivityDto> enclosuresActDto = enclosuresAct.stream()
+            .map(ActivityDto::fromEntity)
+            .toList();
+        
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(enclosuresActDto);
+    }
+
     private Activity createNewActivity(
         Long userId,
         Long enclosureId,
@@ -145,7 +168,9 @@ public class ActivityServiceImpl implements ActivityService {
     ) {
         // Get the user and enclosure
         User userDb = userRep.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(userId.toString()));
+            .orElseThrow(() -> new UserNotFoundException(
+                "El usuario no existe en el sistema"
+            ));
             
         Enclosure enclosureDb = enclosureRep.findById(enclosureId)
             .orElseThrow(() -> new EntityNotFoundException("El recinto no existe en la base de datos"));
@@ -172,23 +197,5 @@ public class ActivityServiceImpl implements ActivityService {
             .build();
 
         return act;
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public ResponseEntity<List<ActivityDto>> getEnclosuresAct(Long enclosureId, String season) {
-        List<Activity> enclosuresAct = null;
-
-        if(season == null) {
-            enclosuresAct = actRep.findByEnclosureId(enclosureId);
-        } else {
-            enclosuresAct = actRep.findByEnclosureIdAndSeason(enclosureId, season);
-        }
-
-        List<ActivityDto> enclosuresActDto = enclosuresAct.stream()
-            .map(ActivityDto::fromEntity)
-            .toList();
-        
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(enclosuresActDto);
     }
 }

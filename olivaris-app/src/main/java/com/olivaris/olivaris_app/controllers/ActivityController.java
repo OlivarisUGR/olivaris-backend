@@ -56,12 +56,13 @@ public class ActivityController {
     }
 
     // If season != null -> get enclosure activities from that season
-    @GetMapping("/enclosure/{enclosureId}")
+    @GetMapping("/user/{userId}/enclosure/{enclosureId}")
     public ResponseEntity<List<ActivityDto>> getEnclosuresAct(
+        @PathVariable Long userId,
         @PathVariable Long enclosureId,
         @RequestParam(required = false) String season
     ) {
-        return actService.getEnclosuresAct(enclosureId, season);
+        return actService.getEnclosuresActByUser(userId, enclosureId, season);
     }
     
 }

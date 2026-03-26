@@ -38,6 +38,8 @@ public class AuthController {
         return authService.confirm(token);
     }
 
+    // TODO: ahora este endpoint se ejecuta cuando se llama al crear un usuario que pertenece a una entidad
+    // con rol de admin
     @GetMapping("/confirmEntityAdmin")
     public ResponseEntity<UserDto> confirmEntityAdmin(
         @RequestParam String token,

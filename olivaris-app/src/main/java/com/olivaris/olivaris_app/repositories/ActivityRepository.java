@@ -30,7 +30,7 @@ public interface ActivityRepository extends CrudRepository<Activity, Long> {
     """)
     Optional<Long> getEntityIdByActId(Long activityId);
 
-    List<Activity> findByEnclosureId(Long enclosureId); 
+    List<Activity> findByEnclosureIdAndUserId(Long enclosureId, Long userId); 
 
-    List<Activity> findByEnclosureIdAndSeason(Long enclosureId, String season); 
+    List<Activity> findByEnclosureIdAndSeasonAndUserId(Long enclosureId, String season, Long userId); 
 }

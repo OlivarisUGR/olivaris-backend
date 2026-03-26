@@ -40,6 +40,11 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final EntityService entityService;
 
+
+    // TODO: dividir el registro de usuario en registroUsuario y registroEntityAdminUser.
+    // El registro usuario es el normal que lo hace el propio usuario para entrar el sistema
+    // El registro de admin entidad se hace por invitacion desde dentro -> registro de usuario, asignacion con 
+    // entidad y envio de correo al usuario para que lo acepte y se active
     @Transactional
     @Override
     public ResponseEntity<UserDto> register(RegisterRequest request) {
@@ -180,7 +185,9 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User userDb = userRep.findByEmail(userEmail)
-                            .orElseThrow(() -> new UserNotFoundException(userEmail));
+                            .orElseThrow(() -> new UserNotFoundException(
+                                "El usuario no existe en el sistema"
+                            ));
 
         // Check if the token is valid
         if(!jwtService.isValid(refreshToken, userDb)) {
