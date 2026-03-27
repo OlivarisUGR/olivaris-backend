@@ -30,9 +30,9 @@ public class EntityValidator {
 
         // If current user has basic role, he must have the admin role on the entity
         EntityRole entityRole = userEntityRoleRep.getEntityRole(userDetails.getId(), entityId)
-                                                    .orElseThrow(() -> new EntityNotFoundException(
-                                                        "No se ha encontrado el usuario asignado a la entidad"
-                                                    ));
+                                    .orElseThrow(() -> new EntityNotFoundException(
+                                        "El usuario logueado no está asignado a la entidad"
+                                    ));
         
         if(entityRole.getName().equals(EntityRoleTypes.ROLE_ADMIN.toString())) {
             return true;

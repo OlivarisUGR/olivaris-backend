@@ -1,5 +1,9 @@
 package com.olivaris.olivaris_app.dto;
 
+import java.util.List;
+
+import com.olivaris.olivaris_app.models.enums.RoleTypes;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -35,5 +39,9 @@ public class RegisterRequest {
     @Pattern(regexp = "^[0-9]{8}[A-Z]$")
     private String nif;
 
+    // This will be used to register an user and assign him to an enabled entity (registerEntityAdminUser)
     private String entityNif;
+
+    // This will be used by admin system if he want to create an user from inside (createSystemUser)
+    private List<RoleTypes> roles;
 }

@@ -8,7 +8,7 @@ import com.olivaris.olivaris_app.models.User;
 
 public interface UserService {
     User register(RegisterRequest request);
-    ResponseEntity<UserDto> createBasicUser(RegisterRequest request);
+    ResponseEntity<UserDto> createSystemUser(RegisterRequest request);
     ResponseEntity<Void> delete(Long id);
     ResponseEntity<UserDto> getById(Long id);
     ResponseEntity<UserDto> getByEmail(String email);

@@ -55,14 +55,15 @@ public class ActivityController {
         return actService.update(activityId, phytoActId, request);
     }
 
-    // If season != null -> get enclosure activities from that season
+    // If season is passed -> get enclosure activities from that season
     @GetMapping("/user/{userId}/enclosure/{enclosureId}")
     public ResponseEntity<List<ActivityDto>> getEnclosuresAct(
         @PathVariable Long userId,
         @PathVariable Long enclosureId,
+        @RequestParam(required = false) Long entityId,
         @RequestParam(required = false) String season
     ) {
-        return actService.getEnclosuresActByUser(userId, enclosureId, season);
+        return actService.getEnclosuresActByUser(userId, enclosureId, entityId, season);
     }
     
 }

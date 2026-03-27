@@ -22,10 +22,9 @@ public class AdminController {
 
     private final UserService userService;
 
-    // TODO: permitir poner el rol del usuario que quieres crear (basic o admin)
     @PostMapping("/user")
-    public ResponseEntity<UserDto> createBasicUser(@Valid @RequestBody RegisterRequest request) {
-        return userService.createBasicUser(request);
+    public ResponseEntity<UserDto> createSystemUser(@Valid @RequestBody RegisterRequest request) {
+        return userService.createSystemUser(request);
     }
 
     @DeleteMapping("/user/{id}")

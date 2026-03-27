@@ -36,6 +36,7 @@ public class UserEntityRole {
     @JoinColumn(name = "enabled_entity_id", nullable = false)
     private EnabledEntity enabledEntity;
 
+    // One to one ??
     @ManyToOne
     @JoinColumn(name = "entity_role_id", nullable = false)
     private EntityRole entityRole;

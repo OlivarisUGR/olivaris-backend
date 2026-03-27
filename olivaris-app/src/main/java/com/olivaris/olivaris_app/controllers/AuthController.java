@@ -29,23 +29,18 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<UserDto> register(@Valid @RequestBody RegisterRequest request) {
-        return authService.register(request);
+    public ResponseEntity<UserDto> registerSystemUser(@Valid @RequestBody RegisterRequest request) {
+        return authService.registerSystemUser(request);
+    }
+
+    @PostMapping("/register/entityAdmin")
+    public ResponseEntity<UserDto> registerEntityAdminUser(@Valid @RequestBody RegisterRequest request) {
+        return authService.registerEntityAdminUser(request);
     }
     
     @GetMapping("/confirm")
     public ResponseEntity<UserDto> confirm(@RequestParam String token) {
         return authService.confirm(token);
-    }
-
-    // TODO: ahora este endpoint se ejecuta cuando se llama al crear un usuario que pertenece a una entidad
-    // con rol de admin
-    @GetMapping("/confirmEntityAdmin")
-    public ResponseEntity<UserDto> confirmEntityAdmin(
-        @RequestParam String token,
-        @RequestParam Long entityId
-    ) {
-        return authService.confirmEntityAdmin(token, entityId);
     }
 
     @PostMapping("/login")

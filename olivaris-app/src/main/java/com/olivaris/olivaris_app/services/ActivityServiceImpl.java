@@ -137,12 +137,13 @@ public class ActivityServiceImpl implements ActivityService {
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
-    // TODO: add validation
     @Transactional(readOnly = true)
     @Override
+    @PreAuthorize("@activityValidator.canGetEnclosuresActivities(#userId, #enclosureId, #entityId)")
     public ResponseEntity<List<ActivityDto>> getEnclosuresActByUser(
         Long userId, 
         Long enclosureId, 
+        Long entityId,
         String season
     ) {
         List<Activity> enclosuresAct = null;

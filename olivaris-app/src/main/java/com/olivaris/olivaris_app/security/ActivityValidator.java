@@ -14,7 +14,6 @@ import com.olivaris.olivaris_app.models.enums.ActivityStatus;
 import com.olivaris.olivaris_app.models.enums.EntityRoleTypes;
 import com.olivaris.olivaris_app.models.enums.RoleTypes;
 import com.olivaris.olivaris_app.repositories.ActivityRepository;
-import com.olivaris.olivaris_app.repositories.EntityRoleRepository;
 import com.olivaris.olivaris_app.repositories.UserEntityRoleRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -27,7 +26,6 @@ public class ActivityValidator {
     private static final int LIMIT_DATE = 1;
     private final UserEntityRoleRepository userEntRoleRep;
     private final ActivityRepository actRep;
-    private final EntityRoleRepository entRoleRep;
 
     // An activity with future date can't be completed
     // An activity with past date can't be planned
@@ -95,11 +93,8 @@ public class ActivityValidator {
         }
 
         boolean hasGivenPerm = userEntRoleRep.givesAllPermToEntity(userIdToAssign, entityId);
-        Long roleAdminId = entRoleRep.getRoleIdByName(EntityRoleTypes.ROLE_ADMIN.toString())
-            .orElseThrow(() -> new EntityNotFoundException("El rol de la entidad no existe"));
-
         boolean currentIsAdminOnEnt = userEntRoleRep.userRoleOnEnt(
-            roleAdminId, currentUserId, entityId);
+            EntityRoleTypes.ROLE_ADMIN.toString(), currentUserId, entityId);
 
         if(currentIsAdminOnEnt) {
             return userEntRoleRep.usersBelongToSameEntity(userIdToAssign, currentUserId) && 
@@ -146,17 +141,48 @@ public class ActivityValidator {
         // user belong to the same entity with admin role -> can update / delete activity
         return optEntityId
             .map(entId -> {
-                Long roleAdminId = entRoleRep.getRoleIdByName(EntityRoleTypes.ROLE_ADMIN.toString())
-                    .orElseThrow(() -> new EntityNotFoundException("El rol de la entidad no existe"));
-
                 boolean currentIsAdminInThisEnt = userEntRoleRep.userRoleOnEnt(
-                    roleAdminId, currentUserId, entId);
+                    EntityRoleTypes.ROLE_ADMIN.toString(), currentUserId, entId);
                 
                 boolean ownerGavePermsInThisEnt = userEntRoleRep.givesAllPermToEntity(ownerId, entId);
 
                 return currentIsAdminInThisEnt && ownerGavePermsInThisEnt;
             })
             .orElse(false);
+    }
+
+    // No pueden verlas -> id distinto al current user, no pertenecen a la misma entidad o pertenecen a la misma 
+    // entidad para el current user no tiene rol admin esa entidad
+    public boolean canGetEnclosuresActivities(Long userId, Long enclosureId, Long entityId) {
+        // Get the current user logued on system
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails customUser = (CustomUserDetails) auth.getPrincipal();
+        Long currentUserId = customUser.getId();
+        boolean isSelf = currentUserId.equals(userId);
+        
+        // Current user will get enclosures activities for other user
+        if(!isSelf) {
+            if(entityId == null) {
+                throw new IllegalArgumentException(
+                    "El ID de la entidad a la que pertenece el usuario es necesario"
+                );
+            }
+
+            boolean belongToSameEntity = userEntRoleRep.userBelongToEntity(currentUserId, entityId);
+            
+            if(!belongToSameEntity) {
+                return false;
+            }
+
+            boolean hasEntityAdminRole = userEntRoleRep.userRoleOnEnt(
+                EntityRoleTypes.ROLE_ADMIN.toString(), currentUserId, entityId);
+
+            if(belongToSameEntity && !hasEntityAdminRole) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private boolean hasRole(CustomUserDetails user, RoleTypes role) {

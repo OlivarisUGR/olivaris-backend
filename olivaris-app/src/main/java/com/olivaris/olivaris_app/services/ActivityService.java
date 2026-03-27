@@ -26,5 +26,10 @@ public interface ActivityService {
         UpdatePhytoActReq body
     );
 
-    ResponseEntity<List<ActivityDto>> getEnclosuresActByUser(Long userId, Long enclosureId, String season);
+    ResponseEntity<List<ActivityDto>> getEnclosuresActByUser(
+        Long userId, 
+        Long enclosureId, 
+        Long entityId,
+        String season
+    );
 }

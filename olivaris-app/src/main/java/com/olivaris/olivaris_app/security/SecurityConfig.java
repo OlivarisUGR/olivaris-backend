@@ -32,8 +32,11 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(request -> request
+                .requestMatchers(HttpMethod.POST, "/api/auth/register/entityAdmin").authenticated()
+
                 // Allow all requests to auth endpoints
                 .requestMatchers("/api/auth/**").permitAll()
+                
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/entity/").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/plot/{id}").hasRole("ADMIN")

@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +20,6 @@ import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 import com.olivaris.olivaris_app.models.Role;
 import com.olivaris.olivaris_app.models.User;
 import com.olivaris.olivaris_app.models.enums.RoleTypes;
-import com.olivaris.olivaris_app.repositories.EntityRepository;
 import com.olivaris.olivaris_app.repositories.RoleRepository;
 import com.olivaris.olivaris_app.repositories.UserRepository;
 
@@ -30,8 +30,6 @@ public class UserServiceImpl implements UserService{
     private final UserRepository userRep;
     private final Long confirmTokenExpiresHours;
     private final PasswordEncoder passwordEncoder;
-    private final EmailService emailService;
-    private final String urlConfirm;
     private final RoleRepository roleRep;
 
     // Using this constructor because @Value does not injected automatically by Springboot
@@ -40,17 +38,11 @@ public class UserServiceImpl implements UserService{
         UserRepository userRep,
         @Value("${confirmation-token.expiration-hours}") Long confirmTokenExpiresHours,
         PasswordEncoder passwordEncoder,
-        EmailService emailService,
-        @Value("${spring.mail.urlConfirm}") String urlConfirm,
-        @Value("${spring.mail.urlConfirmAdmin}") String urlConfirmAdmin,
-        RoleRepository roleRep,
-        EntityRepository entityRep
+        RoleRepository roleRep
     ) {
         this.userRep = userRep;
         this.confirmTokenExpiresHours = confirmTokenExpiresHours;
-        this.passwordEncoder = passwordEncoder;     
-        this.emailService = emailService;    
-        this.urlConfirm = urlConfirm;   
+        this.passwordEncoder = passwordEncoder;       
         this.roleRep = roleRep;   
     }
 
@@ -91,29 +83,36 @@ public class UserServiceImpl implements UserService{
             tokenExpiresAt
         );
 
-        User savedUser = userRep.save(newUser);
-
-        // TODO: sacar de aqui el send to email y devolver directamente el usuario creado. El auth service ahora
-        // tiene dos metodos segun lo que se vaya a registrar (entity admin o basic) y esos metodos llaman a 
-        // este registro, teniendo cada uno su lógica
-        // TODO: hacer una nueva migración que quite el ENTITY_ADMIN role y los actualice por ROLE_BASIC
-        // Send the email confirmation to the user.
-        String url = urlConfirm + token;
-        emailService.sendEmailToOthers(savedUser.getEmail(), url, savedUser.getFirstname());
-
-        return savedUser;
+        return userRep.save(newUser);
     }
 
     @Transactional
     @Override
-    public ResponseEntity<UserDto> createBasicUser(RegisterRequest request) {
+    public ResponseEntity<UserDto> createSystemUser(RegisterRequest request) {
         // Create the user and saved him on database
         String phone = request.getPhone() != null ? 
                             request.getPhone() : null;
-        Role roles = roleRep.findByName(RoleTypes.ROLE_BASIC.toString())
-                                .orElseThrow(() -> new RoleNotExistsException(
-                                    RoleTypes.ROLE_BASIC.toString()
-                                ));
+        
+        // Get the roles from request; else if null -> roleBasic by default
+        List<Role> rolesList = new ArrayList<>();
+
+        if(request.getRoles() != null) {
+            rolesList = request.getRoles().stream()
+                .map(roleType -> {
+                    Role role = roleRep.findByName(roleType.toString())
+                                    .orElseThrow(() -> new RoleNotExistsException(
+                                        roleType.toString()
+                                    ));
+                    return role;
+                })
+                .toList(); 
+        } else {
+            Role role = roleRep.findByName(RoleTypes.ROLE_BASIC.toString())
+                                    .orElseThrow(() -> new RoleNotExistsException(
+                                        RoleTypes.ROLE_BASIC.toString()
+                                    ));
+            rolesList.add(role);
+        }
 
         User newUser = new User(
             request.getFirstname(),
@@ -121,7 +120,7 @@ public class UserServiceImpl implements UserService{
             request.getEmail(),
             passwordEncoder.encode(request.getPassword()),
             phone,
-            List.of(roles),
+            rolesList,
             true,
             request.getNif(),
             null,
@@ -136,6 +135,7 @@ public class UserServiceImpl implements UserService{
 
     @Transactional
     @Override
+    @PreAuthorize("@userValidator.canDeleteSystemUser(#id)")
     public ResponseEntity<Void> delete(Long id) {
         User userToDelete = userRep.findById(id)
                         .orElseThrow(() -> new UserNotFoundException(
@@ -150,6 +150,7 @@ public class UserServiceImpl implements UserService{
     // TODO: add a validation (id != null, user corrects)
     @Transactional(readOnly = true)
     @Override
+    @PreAuthorize("@userValidator.canGetSystemUser()")
     public ResponseEntity<UserDto> getById(Long id) {
         User userDb = userRep.findById(id)
             .orElseThrow(() -> new UserNotFoundException(
@@ -161,9 +162,9 @@ public class UserServiceImpl implements UserService{
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(userDto);
     }
 
-    // TODO: add a validation (email != null, user corrects)
     @Transactional(readOnly = true)
     @Override
+    @PreAuthorize("@userValidator.canGetSystemUser()")
     public ResponseEntity<UserDto> getByEmail(String email) {
         User userDb = userRep.findByEmail(email)    
             .orElseThrow(() -> new UserNotFoundException(

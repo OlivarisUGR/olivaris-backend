@@ -3,8 +3,10 @@ package com.olivaris.olivaris_app.services;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,14 +26,15 @@ import com.olivaris.olivaris_app.exceptions.UserIsEnabledException;
 import com.olivaris.olivaris_app.exceptions.UserNotEnabledException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 import com.olivaris.olivaris_app.models.CustomUserDetails;
+import com.olivaris.olivaris_app.models.EnabledEntity;
 import com.olivaris.olivaris_app.models.User;
 import com.olivaris.olivaris_app.models.enums.EntityRoleTypes;
+import com.olivaris.olivaris_app.repositories.EntityRepository;
 import com.olivaris.olivaris_app.repositories.UserRepository;
 
-import lombok.AllArgsConstructor;
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
-@AllArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRep;
@@ -39,15 +42,33 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authManager;
     private final JwtService jwtService;
     private final EntityService entityService;
+    private final EmailService emailService;
+    private final String urlConfirm;
+    private final EntityRepository entityRep;
+    
+    public AuthServiceImpl(
+        UserRepository userRep, 
+        UserService userService, 
+        AuthenticationManager authManager,
+        JwtService jwtService, 
+        EntityService entityService, 
+        EmailService emailService, 
+        @Value("${spring.mail.urlConfirm}") String urlConfirm,
+        EntityRepository entityRep
+    ) {
+        this.userRep = userRep;
+        this.userService = userService;
+        this.authManager = authManager;
+        this.jwtService = jwtService;
+        this.entityService = entityService;
+        this.emailService = emailService;
+        this.urlConfirm = urlConfirm;
+        this.entityRep = entityRep;
+    }
 
-
-    // TODO: dividir el registro de usuario en registroUsuario y registroEntityAdminUser.
-    // El registro usuario es el normal que lo hace el propio usuario para entrar el sistema
-    // El registro de admin entidad se hace por invitacion desde dentro -> registro de usuario, asignacion con 
-    // entidad y envio de correo al usuario para que lo acepte y se active
     @Transactional
     @Override
-    public ResponseEntity<UserDto> register(RegisterRequest request) {
+    public ResponseEntity<UserDto> registerSystemUser(RegisterRequest request) {
         // Check if the user exists on database
         Optional<User> userDb = userRep.findByEmail(request.getEmail());
 
@@ -56,10 +77,58 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // Register the user
-        User newUser = userService.register(request);
+        User savedUser = userService.register(request);
+
+        // Send email confirmation to the user
+        String url = urlConfirm + savedUser.getConfirmationToken();
+        emailService.sendEmailToUser(savedUser.getEmail(), url, savedUser.getFirstname());
 
         // Create the user DTO 
-        UserDto userDto = UserDto.fromEntity(newUser);
+        UserDto userDto = UserDto.fromEntity(savedUser);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
+    }
+
+    @Transactional
+    @Override
+    @PreAuthorize("@userValidator.canRegisterEntityAdminUser(#request)")
+    public ResponseEntity<UserDto> registerEntityAdminUser(RegisterRequest request) {
+        // Check if the user exists on database
+        Optional<User> userDb = userRep.findByEmail(request.getEmail());
+
+        if(userDb.isPresent()) {
+            throw new UserAlreadyExistsException(request.getEmail());
+        }
+
+        // Register the user
+        User savedUser = userService.register(request);
+
+        // Create the relationship between entity admin user and the entity
+        CreateUserEntity createUserEntity = new CreateUserEntity(
+            EntityRoleTypes.ROLE_ADMIN, 
+            null,
+            null,
+            null,
+            null
+        );
+
+        EnabledEntity entity = entityRep.findByNif(request.getEntityNif())
+            .orElseThrow(() -> new EntityNotFoundException(
+                "La entidad no existe en el sistema"
+            ));
+        
+        entityService.assignUserToEntity(
+            entity.getId(), 
+            savedUser.getId(), 
+            createUserEntity
+        );
+
+        // Send email confirmation to the user
+        String url = urlConfirm + savedUser.getConfirmationToken();
+        emailService.sendEmailToUser(savedUser.getEmail(), url, savedUser.getFirstname());
+
+        // Create the user DTO 
+        UserDto userDto = UserDto.fromEntity(savedUser);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
     }
@@ -85,49 +154,6 @@ public class AuthServiceImpl implements AuthService {
         
         userDb.setEnabled(true);
         userRep.save(userDb);
-
-        // Create the user DTO 
-        UserDto userDto = UserDto.fromEntity(userDb);
-
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userDto);
-    }
-
-    @Transactional
-    @Override
-    public ResponseEntity<UserDto> confirmEntityAdmin(String confirmToken, Long entityId) {
-        // Check if the token exists
-        User userDb = userRep.findByConfirmationToken(confirmToken)
-                            .orElseThrow(() -> new ConfirmTokenNotExistsException(confirmToken));
-
-        // Check if token has not expires
-        LocalDateTime tokenExpiresAt = userDb.getTokenExpiresAt();
-
-        if(tokenExpiresAt.isBefore(LocalDateTime.now())) {
-            throw new TokenExpiredException(confirmToken);
-        }
-
-        // Change user enabled value to true
-        if(userDb.getEnabled()) {
-            throw new UserIsEnabledException("El usuario ya está habilitado");
-        } 
-        
-        userDb.setEnabled(true);
-        userRep.save(userDb);
-
-        // Create the relationship between entity admin user and the entity
-        CreateUserEntity createUserEntity = new CreateUserEntity(
-            EntityRoleTypes.ROLE_ADMIN, 
-            null,
-            null,
-            null,
-            null
-        );
-        
-        entityService.assignUserToEntity(
-            entityId, 
-            userDb.getId(), 
-            createUserEntity
-        );
 
         // Create the user DTO 
         UserDto userDto = UserDto.fromEntity(userDb);

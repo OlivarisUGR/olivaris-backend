@@ -1,5 +1,6 @@
 package com.olivaris.olivaris_app.repositories;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.Query;
@@ -67,15 +68,17 @@ public interface UserEntityRoleRepository extends CrudRepository<UserEntityRole,
     @Query("""
         SELECT COUNT(uer) > 0
         FROM UserEntityRole uer
-        WHERE uer.entityRole.id = :roleId
+        JOIN uer.entityRole er
+        WHERE er.name = :roleName
             AND uer.user.id = :userId
             AND uer.enabledEntity.id = :entityId
     """)
-    boolean userRoleOnEnt(Long roleId, Long userId, Long entityId);
+    boolean userRoleOnEnt(String roleName, Long userId, Long entityId);
 
     @Query("""
-       SELECT uer.enabledEntity.id FROM UserEntityRole uer
+       SELECT uer.enabledEntity.id 
+       FROM UserEntityRole uer
        WHERE uer.user.id = :userId   
     """)
-    Optional<Long> getEntityIdByUserId(Long userId);
+    List<Long> getEntityIdByUserId(Long userId);
 }
