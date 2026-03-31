@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +19,7 @@ import com.olivaris.olivaris_app.dto.RegisterRequest;
 import com.olivaris.olivaris_app.dto.UserDto;
 import com.olivaris.olivaris_app.exceptions.RoleNotExistsException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
+import com.olivaris.olivaris_app.models.CustomUserDetails;
 import com.olivaris.olivaris_app.models.Role;
 import com.olivaris.olivaris_app.models.User;
 import com.olivaris.olivaris_app.models.enums.RoleTypes;
@@ -173,6 +176,20 @@ public class UserServiceImpl implements UserService{
         
         UserDto userDto = UserDto.fromEntity(userDb);
         
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userDto);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public ResponseEntity<UserDto> getCurrentUser() {
+        // Get user logued on system
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+
+        // Get current user database info
+        User userDb = userDetails.getUser();
+        UserDto userDto = UserDto.fromEntity(userDb);
+
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(userDto);
     }
 }

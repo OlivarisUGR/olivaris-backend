@@ -12,4 +12,5 @@ public interface UserService {
     ResponseEntity<Void> delete(Long id);
     ResponseEntity<UserDto> getById(Long id);
     ResponseEntity<UserDto> getByEmail(String email);
+    ResponseEntity<UserDto> getCurrentUser();
 }

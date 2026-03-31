@@ -1,5 +1,6 @@
 package com.olivaris.olivaris_app.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -7,7 +8,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class TokenResponse {
-    private String accessToken;
-    private String refreshToken;
+public class CreateUserPlot {
+    @NotBlank(message = "{plot.name.notblank}")
+    private String name;
 }
