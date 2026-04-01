@@ -11,20 +11,16 @@ import org.locationtech.jts.operation.union.CascadedPolygonUnion;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.olivaris.olivaris_app.clients.SigpacApiClient;
 import com.olivaris.olivaris_app.dto.CreatePlot;
-import com.olivaris.olivaris_app.dto.CreateUserPlot;
 import com.olivaris.olivaris_app.dto.PlotDto;
 import com.olivaris.olivaris_app.dto.PlotEnclosureDto;
 import com.olivaris.olivaris_app.dto.PlotEnclosuresDto;
 import com.olivaris.olivaris_app.dto.SigpacGeoJsonResponse;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
-import com.olivaris.olivaris_app.models.CustomUserDetails;
 import com.olivaris.olivaris_app.models.Enclosure;
 import com.olivaris.olivaris_app.models.Plot;
 import com.olivaris.olivaris_app.models.User;
@@ -46,9 +42,10 @@ public class PlotServiceImpl implements PlotService {
     private final UserPlotRepository userPlotRep;
     private final UserRepository userRep;
 
+    // TODO: add validation
     @Transactional
     @Override
-    public ResponseEntity<PlotDto> create(CreatePlot request) {
+    public ResponseEntity<List<PlotEnclosureDto>> createUserPlot(Long userId, CreatePlot request) {
         String province = request.getProvince().trim().toUpperCase();
         String city = request.getCity().trim().toUpperCase();
         String polygonCode = request.getPolygonCode().trim();
@@ -67,16 +64,24 @@ public class PlotServiceImpl implements PlotService {
         }
 
         // Assign the plot to the user that execute the method
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-        User userDb = userDetails.getUser();
+        User userDb = userRep.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException(
+                "El usuario no existe en el sistema"
+            ));
 
         UserPlot userPlot = new UserPlot(userDb, plotDb, request.getName());
         userPlotRep.save(userPlot);
 
-        // Create the Plot DTO
-        PlotDto plotDto = PlotDto.fromEntity(plotDb);
-        return ResponseEntity.status(HttpStatus.CREATED).body(plotDto);
+        List<UserPlot> userPlotDb = userPlotRep.getUserPlots(userId);
+        List<PlotEnclosureDto> plotEncDto = userPlotDb.stream()
+            .map(up -> {
+                Plot plotDB = up.getPlot();
+                String plotName = up.getPlotName();
+                return PlotEnclosureDto.fromEntity(plotDB, plotName);
+            })
+            .toList();
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(plotEncDto);
     }
 
     @Transactional
@@ -204,38 +209,42 @@ public class PlotServiceImpl implements PlotService {
                 "El usuario no existe en el sistema"
             ));
         
-        List<Plot> userPlotDb = userPlotRep.getUserPlots(userId);
+        List<UserPlot> userPlotDb = userPlotRep.getUserPlots(userId);
         List<PlotEnclosureDto> plotEncDto = userPlotDb.stream()
-            .map(PlotEnclosureDto::fromEntity)
+            .map(up -> {
+                Plot plotDb = up.getPlot();
+                String plotName = up.getPlotName();
+                return PlotEnclosureDto.fromEntity(plotDb, plotName);
+            })
             .toList();
         
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(plotEncDto);
     }
 
     // TODO: add validation
-    @Transactional
-    @Override
-    public ResponseEntity<Void> createUserPlot(Long plotId, Long userId, CreateUserPlot body) {
-        User userDb = userRep.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException(
-                "El usuario no existe en el sistema"
-            ));
+    // @Transactional
+    // @Override
+    // public ResponseEntity<Void> createUserPlot(Long plotId, Long userId, CreateUserPlot body) {
+    //     User userDb = userRep.findById(userId)
+    //         .orElseThrow(() -> new UserNotFoundException(
+    //             "El usuario no existe en el sistema"
+    //         ));
         
-        Plot plotDb = plotRep.findById(plotId)
-            .orElseThrow(() -> new EntityNotFoundException(
-                "La parcela no existe en el sistema"
-            ));
+    //     Plot plotDb = plotRep.findById(plotId)
+    //         .orElseThrow(() -> new EntityNotFoundException(
+    //             "La parcela no existe en el sistema"
+    //         ));
         
-        UserPlot newUserPlot = new UserPlot(
-            userDb,
-            plotDb,
-            body.getName() != null ? body.getName() : ""
-        );
+    //     UserPlot newUserPlot = new UserPlot(
+    //         userDb,
+    //         plotDb,
+    //         body.getName() != null ? body.getName() : ""
+    //     );
 
-        userPlotRep.save(newUserPlot);
+    //     userPlotRep.save(newUserPlot);
 
-        return ResponseEntity.noContent().build();
-    }
+    //     return ResponseEntity.noContent().build();
+    // }
 
     private int getProvinceCode(String province) {
         Map<String, Object> provinces = sigpacApiClient.getProvinceCodes();

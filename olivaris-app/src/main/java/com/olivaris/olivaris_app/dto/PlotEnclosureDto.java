@@ -22,18 +22,20 @@ public class PlotEnclosureDto {
     private String cityCode;
     private String polygonCode;
     private String plotNum;
+    private String plotName;
     private String landRegister;
     private Double area;
     private GeoJsonPolygonDto polygon;
-    private List<EnclosureDto> enclosuresId;
+    private List<EnclosureDto> enclosures;
 
-    public static PlotEnclosureDto fromEntity(Plot plot) {
+    public static PlotEnclosureDto fromEntity(Plot plot, String plotName) {
         return new PlotEnclosureDto(
             plot.getId(),
             plot.getProvinceCode(),
             plot.getCityCode(),
             plot.getPolygonCode(),
             plot.getPlotNum(),
+            plotName,
             plot.getLandRegister(),
             plot.getArea(),
             toGeoJson(plot.getGeometry()),

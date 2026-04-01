@@ -22,8 +22,8 @@ public interface UserPlotRepository extends CrudRepository<UserPlot, Long>{
 	Optional<UserPlot> findByUserIdAndPlotId(Long userId, Long plotId);
 
 	@Query("""
-		SELECT up.plot FROM UserPlot up
+		SELECT up FROM UserPlot up
 		WHERE up.user.id = :userId	
 	""")
-	List<Plot> getUserPlots(Long userId);
+	List<UserPlot> getUserPlots(Long userId);
 }

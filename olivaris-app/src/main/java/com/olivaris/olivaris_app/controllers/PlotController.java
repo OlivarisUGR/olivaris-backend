@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.olivaris.olivaris_app.dto.CreatePlot;
-import com.olivaris.olivaris_app.dto.CreateUserPlot;
 import com.olivaris.olivaris_app.dto.PlotDto;
 import com.olivaris.olivaris_app.dto.PlotEnclosureDto;
 import com.olivaris.olivaris_app.dto.PlotEnclosuresDto;
@@ -29,9 +28,12 @@ public class PlotController {
 
     private final PlotService plotService;
 
-    @PostMapping("/")
-    public ResponseEntity<PlotDto> create(@Valid @RequestBody CreatePlot request) {
-        return plotService.create(request);
+    @PostMapping("/user/{userId}")
+    public ResponseEntity<List<PlotEnclosureDto>> createUserPlot(
+        @PathVariable Long userId,
+        @Valid @RequestBody CreatePlot request
+    ) {
+        return plotService.createUserPlot(userId, request);
     }
 
     @DeleteMapping("/{id}")
@@ -39,14 +41,14 @@ public class PlotController {
         return plotService.delete(id);
     }
 
-    @PostMapping("/{plotId}/user/{userId}")
-    public ResponseEntity<Void> createUserPlot(
-        @PathVariable Long plotId, 
-        @PathVariable Long userId,
-        @RequestBody CreateUserPlot request
-    ) {
-        return plotService.createUserPlot(plotId, userId, request);
-    }
+    // @PostMapping("/{plotId}/user/{userId}")
+    // public ResponseEntity<Void> createUserPlot(
+    //     @PathVariable Long plotId, 
+    //     @PathVariable Long userId,
+    //     @RequestBody CreateUserPlot request
+    // ) {
+    //     return plotService.createUserPlot(plotId, userId, request);
+    // }
 
     @DeleteMapping("/{plotId}/user/{userId}")
     public ResponseEntity<Void> deleteUserPlot(@PathVariable Long plotId, @PathVariable Long userId) {
