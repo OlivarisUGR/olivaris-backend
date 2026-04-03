@@ -1,5 +1,7 @@
 package com.olivaris.olivaris_app.services;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -37,5 +39,16 @@ public class PhytoProductServiceImpl implements PhytoProductService {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(productDto);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public ResponseEntity<List<PhytoProductDto>> getAllPhytoProduct() {
+        List<PhytoProductDto> phytoProductDtoList = ((List<PhytoProduct>) phytoProductRep.findAll())
+            .stream()
+            .map(PhytoProductDto::fromEntity)
+            .toList();
+        
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(phytoProductDtoList);
     }
 }
