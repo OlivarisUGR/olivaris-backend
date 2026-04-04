@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import com.olivaris.olivaris_app.dto.ActivityDto;
 import com.olivaris.olivaris_app.dto.CreateActivityRequest;
 import com.olivaris.olivaris_app.dto.PhytoActivityDto;
 import com.olivaris.olivaris_app.dto.UpdatePhytoActReq;
+import com.olivaris.olivaris_app.exceptions.EntityExistsException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 import com.olivaris.olivaris_app.models.Activity;
 import com.olivaris.olivaris_app.models.EnabledEntity;
@@ -25,6 +27,7 @@ import com.olivaris.olivaris_app.models.enums.ActivityStatus;
 import com.olivaris.olivaris_app.repositories.ActivityRepository;
 import com.olivaris.olivaris_app.repositories.EnclosureRepository;
 import com.olivaris.olivaris_app.repositories.EntityRepository;
+import com.olivaris.olivaris_app.repositories.UserPlotRepository;
 import com.olivaris.olivaris_app.repositories.UserRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -38,6 +41,7 @@ public class ActivityServiceImpl implements ActivityService {
 
     private final ActivityRepository actRep;
     private final UserRepository userRep;
+    private final UserPlotRepository userPlotRep;
     private final EnclosureRepository enclosureRep;
     private final PhytoActService phytoActService;
     private final EntityRepository entityRep;
@@ -53,9 +57,16 @@ public class ActivityServiceImpl implements ActivityService {
     ) {
         // If activity exists -> Get and update it
         // else -> create a new activity
-        Activity act = actRep.findByDateAndEnclosureIdAndUserIdAndTypeAndEntityId(
-                body.getDate(), enclosureId, userId, body.getType(), entityId)
-            .orElseGet(() -> createNewActivity(userId, enclosureId, entityId, body));
+        Optional<Activity> optionalAct = actRep.findByDateAndEnclosureIdAndUserIdAndTypeAndEntityId(
+                body.getDate(), enclosureId, userId, body.getType(), entityId);
+
+        final Activity act;
+
+        if(optionalAct.isEmpty()) {
+            act = createNewActivity(userId, enclosureId, entityId, body);
+        } else {
+            throw new EntityExistsException("La actividad ya existe en el sistema");
+        }
 
         if(body.getDescription() != null && !body.getDescription().isBlank()) {
             act.setDescription(body.getDescription());
@@ -155,10 +166,31 @@ public class ActivityServiceImpl implements ActivityService {
         }
 
         List<ActivityDto> enclosuresActDto = enclosuresAct.stream()
-            .map(ActivityDto::fromEntity)
+            .map(act -> {
+                Long plotId = act.getEnclosure().getPlot().getId();
+                String plotName = userPlotRep.getPlotNameByPlotId(plotId);
+                return ActivityDto.fromEntity(act, plotName);
+            })
             .toList();
         
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(enclosuresActDto);
+    }
+
+    // TODO: add validation if user exists
+    @Transactional(readOnly = true)
+    @Override
+    public ResponseEntity<List<ActivityDto>> getUserActivities(Long userId) {
+        List<Activity> activitiesDb = actRep.findByUserId(userId);
+        
+        List<ActivityDto> activitiesDto = activitiesDb.stream()
+            .map(act -> {
+                Long plotId = act.getEnclosure().getPlot().getId();
+                String plotName = userPlotRep.getPlotNameByPlotId(plotId);
+                return ActivityDto.fromEntity(act, plotName);
+            })
+            .toList();
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(activitiesDto);
     }
 
     private Activity createNewActivity(

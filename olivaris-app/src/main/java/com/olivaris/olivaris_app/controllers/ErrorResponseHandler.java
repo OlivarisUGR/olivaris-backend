@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.olivaris.olivaris_app.dto.ErrorDto;
 import com.olivaris.olivaris_app.exceptions.AuthHeaderNotValidException;
 import com.olivaris.olivaris_app.exceptions.ConfirmTokenNotExistsException;
+import com.olivaris.olivaris_app.exceptions.EntityExistsException;
 import com.olivaris.olivaris_app.exceptions.FieldIsNecessaryException;
 import com.olivaris.olivaris_app.exceptions.MailSenderException;
 import com.olivaris.olivaris_app.exceptions.PhytoActArgumentException;
@@ -115,6 +116,17 @@ public class ErrorResponseHandler {
         );
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    @ExceptionHandler(EntityExistsException.class)
+    public ResponseEntity<ErrorDto> entityExists(Exception ex) {
+        ErrorDto error = new ErrorDto(
+            "Entidad existente en el sistema", 
+            ex.getMessage(), 
+            HttpStatus.BAD_REQUEST.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
     
     @ExceptionHandler(AuthHeaderNotValidException.class)

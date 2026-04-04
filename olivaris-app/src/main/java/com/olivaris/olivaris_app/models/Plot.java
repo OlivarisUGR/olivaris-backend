@@ -1,5 +1,6 @@
 package com.olivaris.olivaris_app.models;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.locationtech.jts.geom.Polygon;
@@ -63,7 +64,7 @@ public class Plot {
     private String polygonCode;
 
     @NotBlank(message = "{plot.plotNum.notblank}")
-    @Column(name = "plot_num", length = 5, nullable = false)
+    @Column(name = "plot_num", nullable = false)
     private String plotNum;
 
     @NotBlank(message = "{plot.landRegister.notblank}")
@@ -77,10 +78,10 @@ public class Plot {
     private Polygon geometry;
 
     @OneToMany(mappedBy = "plot", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Enclosure> enclosures;
+    private List<Enclosure> enclosures = new ArrayList<>();
 
     @OneToMany(mappedBy = "plot", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserPlot> userList;
+    private List<UserPlot> userList = new ArrayList<>();
 
     public Plot(String provinceCode, String cityCode, String polygonCode, String plotNum, 
         String landRegister, Double area, Polygon geometry

@@ -1,6 +1,7 @@
 package com.olivaris.olivaris_app.services;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -18,7 +19,6 @@ import com.olivaris.olivaris_app.clients.SigpacApiClient;
 import com.olivaris.olivaris_app.dto.CreatePlot;
 import com.olivaris.olivaris_app.dto.PlotDto;
 import com.olivaris.olivaris_app.dto.PlotEnclosureDto;
-import com.olivaris.olivaris_app.dto.PlotEnclosuresDto;
 import com.olivaris.olivaris_app.dto.SigpacGeoJsonResponse;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 import com.olivaris.olivaris_app.models.Enclosure;
@@ -69,7 +69,7 @@ public class PlotServiceImpl implements PlotService {
                 "El usuario no existe en el sistema"
             ));
 
-        UserPlot userPlot = new UserPlot(userDb, plotDb, request.getName());
+        UserPlot userPlot = new UserPlot(userDb, plotDb, request.getName().toUpperCase());
         userPlotRep.save(userPlot);
 
         List<UserPlot> userPlotDb = userPlotRep.getUserPlots(userId);
@@ -189,13 +189,13 @@ public class PlotServiceImpl implements PlotService {
 
     @Transactional(readOnly = true)
     @Override
-    public ResponseEntity<PlotEnclosuresDto> getPlotEnclosures(Long plotId) {
+    public ResponseEntity<PlotEnclosureDto> getPlotEnclosures(Long plotId) {
         Plot plotDb = plotRep.findById(plotId)
             .orElseThrow(() -> new EntityNotFoundException(
                 "La parcela no existe en el sistema"
             ));
         
-        PlotEnclosuresDto plotEnclosuresDto = PlotEnclosuresDto.fromEntity(plotDb);
+        PlotEnclosureDto plotEnclosuresDto = PlotEnclosureDto.fromEntity(plotDb);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(plotEnclosuresDto);   
     }
@@ -219,6 +219,26 @@ public class PlotServiceImpl implements PlotService {
             .toList();
         
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(plotEncDto);
+    }
+
+    // TODO: add validation for userId
+    @Transactional(readOnly = true)
+    @Override
+    public ResponseEntity<Map<String, Long>> getEnclosureId(
+        String plotName, 
+        String enclosureName,
+        Long userId
+    ) {
+        Long enclosureId = userPlotRep.getEnclosureIdByUserIdAndPlotNameAndEnclosureName(
+            plotName.toUpperCase(), enclosureName.toUpperCase(), userId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "No se ha encontrado el recinto para los parámetros pasados"
+            ));
+
+        Map<String, Long> enclosureMap = new HashMap<>();
+        enclosureMap.put("enclosureId", enclosureId);
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(enclosureMap);
     }
 
     // TODO: add validation

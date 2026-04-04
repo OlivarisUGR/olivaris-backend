@@ -32,4 +32,6 @@ public interface ActivityService {
         Long entityId,
         String season
     );
+
+    ResponseEntity<List<ActivityDto>> getUserActivities(Long userId);
 }

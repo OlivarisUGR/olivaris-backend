@@ -65,5 +65,10 @@ public class ActivityController {
     ) {
         return actService.getEnclosuresActByUser(userId, enclosureId, entityId, season);
     }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ActivityDto>> getUserActivities(@PathVariable Long userId) {
+        return actService.getUserActivities(userId);
+    }
     
 }

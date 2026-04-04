@@ -19,6 +19,8 @@ public class ActivityDto {
 	private Long id;
 	private Long userId;
 	private Long enclosureId;
+	private String enclosureName;
+	private String plotName;
 	private Long entityId;
 	private ActivityType type;
 	private LocalDate date;
@@ -27,11 +29,13 @@ public class ActivityDto {
 	private ActivityStatus status;
 	private List<PhytoActDto> phytoActIds;
 
-	public static ActivityDto fromEntity(Activity activity) {
+	public static ActivityDto fromEntity(Activity activity, String plotName) {
 		return new ActivityDto(
 			activity.getId(),
 			activity.getUser() != null ? activity.getUser().getId() : null,
 			activity.getEnclosure() != null ? activity.getEnclosure().getId() : null,
+			activity.getEnclosure().getName(),
+			plotName != null ? plotName: null,
 			activity.getEntity() != null ? activity.getEntity().getId() : null,
 			activity.getType(),
 			activity.getDate(),

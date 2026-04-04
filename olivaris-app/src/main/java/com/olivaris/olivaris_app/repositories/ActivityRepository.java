@@ -33,4 +33,6 @@ public interface ActivityRepository extends CrudRepository<Activity, Long> {
     List<Activity> findByEnclosureIdAndUserId(Long enclosureId, Long userId); 
 
     List<Activity> findByEnclosureIdAndSeasonAndUserId(Long enclosureId, String season, Long userId); 
+
+    List<Activity> findByUserId(Long userId);
 }

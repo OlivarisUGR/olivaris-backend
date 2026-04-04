@@ -1,6 +1,7 @@
 package com.olivaris.olivaris_app.dto;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.locationtech.jts.geom.Coordinate;
@@ -38,7 +39,7 @@ public class PlotDto {
             plot.getLandRegister(),
             plot.getArea(),
             toGeoJson(plot.getGeometry()),
-            plot.getEnclosures().stream()
+            (plot.getEnclosures() == null ? Collections.<Enclosure>emptyList() : plot.getEnclosures()).stream()
                 .map(Enclosure::getId)
                 .toList()
         );

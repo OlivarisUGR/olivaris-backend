@@ -1,6 +1,7 @@
 package com.olivaris.olivaris_app.controllers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -9,12 +10,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.olivaris.olivaris_app.dto.CreatePlot;
 import com.olivaris.olivaris_app.dto.PlotDto;
 import com.olivaris.olivaris_app.dto.PlotEnclosureDto;
-import com.olivaris.olivaris_app.dto.PlotEnclosuresDto;
 import com.olivaris.olivaris_app.services.PlotService;
 
 import jakarta.validation.Valid;
@@ -61,13 +62,22 @@ public class PlotController {
     }
 
     @GetMapping("/{plotId}/enclosures")
-    public ResponseEntity<PlotEnclosuresDto> getPlotEnclosures(@PathVariable Long plotId) {
+    public ResponseEntity<PlotEnclosureDto> getPlotEnclosures(@PathVariable Long plotId) {
         return plotService.getPlotEnclosures(plotId);
     }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<PlotEnclosureDto>> getUserPlots(@PathVariable Long userId) {
         return plotService.getUserPlots(userId);
+    }
+
+    @GetMapping("")
+    public ResponseEntity<Map<String, Long>> getEnclosureId(
+        @RequestParam(required = true) String plotName,
+        @RequestParam(required = true) String enclosureName,
+        @RequestParam(required = true) Long userId
+    ) {
+        return plotService.getEnclosureId(plotName, enclosureName, userId);
     }
     
 }

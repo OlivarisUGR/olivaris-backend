@@ -26,4 +26,23 @@ public interface UserPlotRepository extends CrudRepository<UserPlot, Long>{
 		WHERE up.user.id = :userId	
 	""")
 	List<UserPlot> getUserPlots(Long userId);
+
+	@Query("""
+		SELECT up.plotName FROM UserPlot up
+		WHERE up.plot.id = :plotId
+	""")
+	String getPlotNameByPlotId(Long plotId);
+
+	@Query("""
+		SELECT en.id FROM UserPlot up 
+		JOIN Enclosure en ON en.plot = up.plot
+		WHERE up.user.id = :userId 
+			AND up.plotName = :plotName
+			AND en.name = :enclosureName	
+	""")
+	Optional<Long> getEnclosureIdByUserIdAndPlotNameAndEnclosureName(
+		String plotName, 
+		String enclosureName, 
+		Long userId
+	);
 }

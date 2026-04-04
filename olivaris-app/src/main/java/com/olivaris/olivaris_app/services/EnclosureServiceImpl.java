@@ -44,7 +44,7 @@ public class EnclosureServiceImpl implements EnclosureService {
 
             Enclosure enclosure = new Enclosure(
                 plot,
-                name,
+                name.toUpperCase(),
                 area,
                 use,
                 polygon
