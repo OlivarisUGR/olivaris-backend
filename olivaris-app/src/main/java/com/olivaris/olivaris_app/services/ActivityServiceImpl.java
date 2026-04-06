@@ -14,8 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.olivaris.olivaris_app.dto.ActivityDto;
 import com.olivaris.olivaris_app.dto.CreateActivityRequest;
-import com.olivaris.olivaris_app.dto.PhytoActivityDto;
-import com.olivaris.olivaris_app.dto.UpdatePhytoActReq;
+import com.olivaris.olivaris_app.dto.CreatePhytoActReq;
+import com.olivaris.olivaris_app.dto.UpdateActRequest;
 import com.olivaris.olivaris_app.exceptions.EntityExistsException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 import com.olivaris.olivaris_app.models.Activity;
@@ -117,10 +117,9 @@ public class ActivityServiceImpl implements ActivityService {
     @Transactional
     @Override
     @PreAuthorize("@activityValidator.canUpdateDeleteAct(#activityId)")
-    public ResponseEntity<PhytoActivityDto> update(
+    public ResponseEntity<ActivityDto> updateActivity(
         Long activityId, 
-        Long phytoActId,
-        UpdatePhytoActReq body
+        UpdateActRequest body
     ) {
         // Check if activity exists
         Activity actDb = actRep.findById(activityId)
@@ -137,15 +136,11 @@ public class ActivityServiceImpl implements ActivityService {
             throw new IllegalArgumentException("No se puede modificar el estado de la actividad");
         }
 
-        PhytoAct phytoActDb = phytoActService.updatePhytoAct(phytoActId, body);
+        List<PhytoAct> phytoActListDb = phytoActService.updatePhytoActivities(body.getPhytoActs());
 
-        PhytoActivityDto dto = new PhytoActivityDto(
-            activityId,
-            phytoActId,
-            "La actividad fitosanitaria ha sido actualizada con éxito"
-        );
-
-        return ResponseEntity.status(HttpStatus.OK).body(dto);
+        ActivityDto actDto = ActivityDto.fromEntity(actDb, null);
+    
+        return ResponseEntity.status(HttpStatus.OK).body(actDto);
     }
 
     @Transactional(readOnly = true)
@@ -191,6 +186,37 @@ public class ActivityServiceImpl implements ActivityService {
             .toList();
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(activitiesDto);
+    }
+
+    // TODO: addd validation for user
+    @Transactional
+    @Override
+    public ResponseEntity<ActivityCreatedResponse> addNewPhytoActivity(
+        Long activityId, 
+        CreatePhytoActReq phytoActInfo
+    ) {
+        // Fin the activity on database
+        Activity actDb = actRep.findById(activityId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "La actividad no existe en el sistema"
+            ));
+        
+        // Create the new Phyto Activity
+        PhytoAct newPhytoAct = phytoActService.createPhytoActivity(actDb, phytoActInfo);
+        actDb.getPhytoAct().add(newPhytoAct);
+        actDb = actRep.save(actDb);
+        
+        // Create the DTO and return the response
+        ActivityCreatedResponse actDto = new ActivityCreatedResponse(
+            actDb.getId(),
+            actDb.getPhytoAct().stream()
+                .map(pA -> pA.getId())
+                .toList(),
+            LocalDateTime.now(),
+            "Una actividad de tipo fitosanitaria ha sido registrada"
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(actDto);
     }
 
     private Activity createNewActivity(

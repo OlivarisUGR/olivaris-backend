@@ -6,8 +6,8 @@ import org.springframework.http.ResponseEntity;
 
 import com.olivaris.olivaris_app.dto.ActivityDto;
 import com.olivaris.olivaris_app.dto.CreateActivityRequest;
-import com.olivaris.olivaris_app.dto.PhytoActivityDto;
-import com.olivaris.olivaris_app.dto.UpdatePhytoActReq;
+import com.olivaris.olivaris_app.dto.CreatePhytoActReq;
+import com.olivaris.olivaris_app.dto.UpdateActRequest;
 import com.olivaris.olivaris_app.dto.ActivityCreatedResponse;
 
 public interface ActivityService {
@@ -20,10 +20,9 @@ public interface ActivityService {
 
     ResponseEntity<Void> delete(Long id);
 
-    ResponseEntity<PhytoActivityDto> update(
+    ResponseEntity<ActivityDto> updateActivity(
         Long activityId, 
-        Long phytoActId,
-        UpdatePhytoActReq body
+        UpdateActRequest body
     );
 
     ResponseEntity<List<ActivityDto>> getEnclosuresActByUser(
@@ -34,4 +33,8 @@ public interface ActivityService {
     );
 
     ResponseEntity<List<ActivityDto>> getUserActivities(Long userId);
+    ResponseEntity<ActivityCreatedResponse> addNewPhytoActivity(
+        Long activityId, 
+        CreatePhytoActReq phytoActInfo
+    );
 }

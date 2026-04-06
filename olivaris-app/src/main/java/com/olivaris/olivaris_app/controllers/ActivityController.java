@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.olivaris.olivaris_app.dto.ActivityCreatedResponse;
 import com.olivaris.olivaris_app.dto.ActivityDto;
 import com.olivaris.olivaris_app.dto.CreateActivityRequest;
-import com.olivaris.olivaris_app.dto.PhytoActivityDto;
-import com.olivaris.olivaris_app.dto.UpdatePhytoActReq;
+import com.olivaris.olivaris_app.dto.CreatePhytoActReq;
+import com.olivaris.olivaris_app.dto.UpdateActRequest;
 import com.olivaris.olivaris_app.services.ActivityService;
 
 import jakarta.validation.Valid;
@@ -41,18 +41,25 @@ public class ActivityController {
         return actService.create(userId, enclosureId, entityId, request);
     }
 
+    @PostMapping("/{activityId}")
+    public ResponseEntity<ActivityCreatedResponse> addNewPhytoActivity(
+        @PathVariable Long activityId,
+        @Valid @RequestBody CreatePhytoActReq request
+    ) {
+        return actService.addNewPhytoActivity(activityId, request);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         return actService.delete(id);
     }
 
-    @PutMapping("/{activityId}/phytoAct/{phytoActId}")
-    public ResponseEntity<PhytoActivityDto> updatePhytoAct(
+    @PutMapping("/{activityId}")
+    public ResponseEntity<ActivityDto> updateActivity(
         @PathVariable Long activityId,
-        @PathVariable Long phytoActId,
-        @Valid @RequestBody UpdatePhytoActReq request
+        @Valid @RequestBody UpdateActRequest request
     ) {
-        return actService.update(activityId, phytoActId, request);
+        return actService.updateActivity(activityId, request);
     }
 
     // If season is passed -> get enclosure activities from that season

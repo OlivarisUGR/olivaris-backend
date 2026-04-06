@@ -2,6 +2,7 @@ package com.olivaris.olivaris_app.services;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -40,7 +41,7 @@ public class PhytoActServiceImpl implements PhytoActService {
             .applicationDate(body.getApplicationDate())
             .reason(body.getReason() != null ? body.getReason() : null)
             .dose(body.getDose() != null ? body.getDose() : null)
-            .doseUnit(body.getDoseUnit() != null ? body.getDoseUnit() : null)
+            .doseUnit(body.getDoseUnit() != null ? body.getDoseUnit().toLowerCase() : null)
             .totalAmount(body.getTotalAmount() != null ? body.getTotalAmount() : null)
             .applicationMethod(body.getApplicationMethod() != null ? body.getApplicationMethod() : null)
             .applicationMachinery(body.getApplicationMachinery() != null ? body.getApplicationMachinery() : null)
@@ -55,15 +56,27 @@ public class PhytoActServiceImpl implements PhytoActService {
     // TODO: add validations for the user who can do this
     @Transactional
     @Override
-    public PhytoAct updatePhytoAct(Long phytoActId, UpdatePhytoActReq body) {
-        PhytoAct phytoActDb = phytoActRep.findById(phytoActId)
+    public List<PhytoAct> updatePhytoActivities(List<UpdatePhytoActReq> body) {
+        List<PhytoAct> phytoActList = body.stream()
+            .map(updatePhytoAct -> {
+                return updatePhytoAct(updatePhytoAct);
+            })
+            .toList();
+
+        return phytoActList;
+    }
+
+    @Transactional
+    @Override
+    public PhytoAct updatePhytoAct(UpdatePhytoActReq body) {
+        PhytoAct phytoActDb = phytoActRep.findById(body.getPhytoActId())
             .orElseThrow(() -> new EntityNotFoundException("La actividad fitosanitaria no existe"));
         
         if(body.getReason() != null) phytoActDb.setReason(body.getReason());
         if(body.getDose() != null) phytoActDb.setDose(body.getDose());
-        if(body.getDoseUnit() != null) phytoActDb.setDoseUnit(body.getDoseUnit());
+        if(body.getDoseUnit() != null) phytoActDb.setDoseUnit(body.getDoseUnit().toLowerCase());
         if(body.getTotalAmount() != null) phytoActDb.setTotalAmount(body.getTotalAmount());
-        if(body.getApplicationMehtod() != null) phytoActDb.setApplicationMethod(body.getApplicationMehtod());
+        if(body.getApplicationMethod() != null) phytoActDb.setApplicationMethod(body.getApplicationMethod());
         if(body.getApplicationMachinery() != null) phytoActDb.setApplicationMachinery(body.getApplicationMachinery());
         if(body.getApplicatorNif() != null) phytoActDb.setApplicatorNif(body.getApplicatorNif());
         if(body.getArea() != null) phytoActDb.setArea(body.getArea());
