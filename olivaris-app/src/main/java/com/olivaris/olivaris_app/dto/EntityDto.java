@@ -19,7 +19,7 @@ public class EntityDto {
     private String phone;
     private String email;
     private Boolean active;
-    private String entityRole;
+    private String userEntityRole;
     
     public static EntityDto fromEntity(EnabledEntity entity) {
         return new EntityDto(
