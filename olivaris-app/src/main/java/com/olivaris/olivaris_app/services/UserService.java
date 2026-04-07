@@ -1,5 +1,7 @@
 package com.olivaris.olivaris_app.services;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 
 import com.olivaris.olivaris_app.dto.RegisterRequest;
@@ -13,4 +15,5 @@ public interface UserService {
     ResponseEntity<UserDto> getById(Long id);
     ResponseEntity<UserDto> getByEmail(String email);
     ResponseEntity<UserDto> getCurrentUser();
+    ResponseEntity<List<UserDto>> getEntityFarmerUsers(Long entityId);
 }

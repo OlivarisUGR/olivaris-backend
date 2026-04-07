@@ -1,5 +1,7 @@
 package com.olivaris.olivaris_app.services;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -168,5 +170,24 @@ public class EntityServiceImpl implements EntityService {
         userEntityRoleRep.delete(userEntityRoleDb);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public ResponseEntity<List<EntityDto>> getUserEntities(Long userId) {
+        // Check if user exists
+        User userDb = userRep.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException(
+                "El usuario no existe en el sistema"
+            ));
+
+        // Get the user entities that belong to him
+        List<UserEntityRole> entitiesList = userEntityRoleRep.findEntityByUserId(userId);
+
+        List<EntityDto> entitiesDto = entitiesList.stream()
+            .map(EntityDto::fromUserEntityRole)
+            .toList();
+        
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(entitiesDto);
     }
 }

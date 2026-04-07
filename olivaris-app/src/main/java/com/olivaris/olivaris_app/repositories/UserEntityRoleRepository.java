@@ -8,6 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import com.olivaris.olivaris_app.models.EntityRole;
+import com.olivaris.olivaris_app.models.User;
 import com.olivaris.olivaris_app.models.UserEntityRole;
 
 @Repository
@@ -76,9 +77,24 @@ public interface UserEntityRoleRepository extends CrudRepository<UserEntityRole,
     boolean userRoleOnEnt(String roleName, Long userId, Long entityId);
 
     @Query("""
-       SELECT uer.enabledEntity.id 
-       FROM UserEntityRole uer
-       WHERE uer.user.id = :userId   
+        SELECT uer.enabledEntity.id 
+        FROM UserEntityRole uer
+        WHERE uer.user.id = :userId   
     """)
     List<Long> getEntityIdByUserId(Long userId);
+
+    @Query("""
+        SELECT DISTINCT uer
+        FROM UserEntityRole uer
+        WHERE uer.user.id = :userId     
+    """)
+    List<UserEntityRole> findEntityByUserId(Long userId);
+
+    @Query("""
+        SELECT DISTINCT uer.user 
+        FROM UserEntityRole uer
+        WHERE uer.enabledEntity.id = :entityId     
+            AND uer.entityRole.name = :roleName
+    """)
+    List<User> findUserByEntityId(Long entityId, String roleName);
 }

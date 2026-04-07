@@ -1,5 +1,7 @@
 package com.olivaris.olivaris_app.services;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 
 import com.olivaris.olivaris_app.dto.CreateEntity;
@@ -30,4 +32,5 @@ public interface EntityService {
     );
 
     ResponseEntity<Void> delete(Long entityId, Long userId);
+    ResponseEntity<List<EntityDto>> getUserEntities(Long userId);
 }

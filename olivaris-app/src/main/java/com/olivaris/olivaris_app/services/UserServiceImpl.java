@@ -20,11 +20,17 @@ import com.olivaris.olivaris_app.dto.UserDto;
 import com.olivaris.olivaris_app.exceptions.RoleNotExistsException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 import com.olivaris.olivaris_app.models.CustomUserDetails;
+import com.olivaris.olivaris_app.models.EnabledEntity;
 import com.olivaris.olivaris_app.models.Role;
 import com.olivaris.olivaris_app.models.User;
+import com.olivaris.olivaris_app.models.enums.EntityRoleTypes;
 import com.olivaris.olivaris_app.models.enums.RoleTypes;
+import com.olivaris.olivaris_app.repositories.EntityRepository;
 import com.olivaris.olivaris_app.repositories.RoleRepository;
+import com.olivaris.olivaris_app.repositories.UserEntityRoleRepository;
 import com.olivaris.olivaris_app.repositories.UserRepository;
+
+import jakarta.persistence.EntityNotFoundException;
 
 
 @Service
@@ -34,6 +40,8 @@ public class UserServiceImpl implements UserService{
     private final Long confirmTokenExpiresHours;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRep;
+    private final EntityRepository entityRep;
+    private final UserEntityRoleRepository userEntityRoleRep;
 
     // Using this constructor because @Value does not injected automatically by Springboot
     // if @AllArgsConstructor is used
@@ -41,12 +49,16 @@ public class UserServiceImpl implements UserService{
         UserRepository userRep,
         @Value("${confirmation-token.expiration-hours}") Long confirmTokenExpiresHours,
         PasswordEncoder passwordEncoder,
-        RoleRepository roleRep
+        RoleRepository roleRep,
+        EntityRepository entityRep,
+        UserEntityRoleRepository userEntityRoleRep
     ) {
         this.userRep = userRep;
         this.confirmTokenExpiresHours = confirmTokenExpiresHours;
         this.passwordEncoder = passwordEncoder;       
-        this.roleRep = roleRep;   
+        this.roleRep = roleRep;  
+        this.entityRep = entityRep;
+        this.userEntityRoleRep =userEntityRoleRep; 
     }
 
     @Transactional
@@ -191,5 +203,26 @@ public class UserServiceImpl implements UserService{
         UserDto userDto = UserDto.fromEntity(userDb);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(userDto);
+    }
+
+    // TODO: validation -> can execute it only an user with admin role entity
+    @Transactional(readOnly = true)
+    @Override
+    public ResponseEntity<List<UserDto>> getEntityFarmerUsers(Long entityId) {
+        // Get the entity
+        EnabledEntity entDb = entityRep.findById(entityId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "La entidad habilitada no existe en el sistema"
+            ));
+
+        // Get the users that belong to entity with farmer role
+        List<User> userList = userEntityRoleRep.findUserByEntityId(
+            entityId, EntityRoleTypes.ROLE_FARMER.toString());
+
+        List<UserDto> userListDto = userList.stream()
+            .map(UserDto::fromEntity)
+            .toList();
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userListDto);
     }
 }
