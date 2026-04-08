@@ -2,6 +2,7 @@ package com.olivaris.olivaris_app.security;
 
 import java.time.LocalDate;
 import java.time.Year;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.security.core.Authentication;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import com.olivaris.olivaris_app.dto.CreateActivityRequest;
 import com.olivaris.olivaris_app.models.CustomUserDetails;
+import com.olivaris.olivaris_app.models.UserEntityRole;
 import com.olivaris.olivaris_app.models.enums.ActivityStatus;
 import com.olivaris.olivaris_app.models.enums.EntityRoleTypes;
 import com.olivaris.olivaris_app.models.enums.RoleTypes;
@@ -26,6 +28,7 @@ public class ActivityValidator {
     private static final int LIMIT_DATE = 1;
     private final UserEntityRoleRepository userEntRoleRep;
     private final ActivityRepository actRep;
+    private final UserEntityRoleRepository userEntityRoleRep;
 
     // An activity with future date can't be completed
     // An activity with past date can't be planned
@@ -59,31 +62,16 @@ public class ActivityValidator {
         CustomUserDetails customUser = (CustomUserDetails) auth.getPrincipal();
         Long currentUserId = customUser.getId();
 
-        // Can create an activity:
-        // Admin -> can creates an activity for himself or for any user whose is registered on system
-        if(hasRole(customUser, RoleTypes.ROLE_ADMIN)) {
-            return true;
-        }
-
         boolean isSelf = currentUserId.equals(userIdToAssign);
         boolean belongToAnyEntity = userEntRoleRep.userBelongToAnyEntity(currentUserId);
 
         // User can creates an activity for himself if he doesn't belong to an entity or
-        // he belong to the entity but he hasn't given permission
+        // he belong to all entities with admin role
         if(isSelf) {
-            if(!belongToAnyEntity && entityId == null) {
+            if(!belongToAnyEntity || (belongToAnyEntity && 
+                userBelongsToAllEntAsAdmin(currentUserId))) {
                 return true;
             }
-
-            // If the user belong to an entity, it is necessary the entity Id to search the permissions given
-            if(entityId == null) {
-                return false;
-            }
-            
-            boolean userBelongToEnt = userEntRoleRep.userBelongToEntity(currentUserId, entityId);
-            boolean hasGivenPerm = userEntRoleRep.givesAllPermToEntity(currentUserId, entityId);
-
-            return userBelongToEnt && !hasGivenPerm;
         }
 
         // The activity will be created for a different user than the current if the user that
@@ -109,6 +97,7 @@ public class ActivityValidator {
             correctSeasonDate(Integer.parseInt(body.getSeason()));
     }
 
+    // TODO: cambiar a la logica de la validacion del crear actividad de arriba
     public boolean canUpdateDeleteAct(Long activityId) {
         // Get the current user logued on system
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -188,5 +177,12 @@ public class ActivityValidator {
     private boolean hasRole(CustomUserDetails user, RoleTypes role) {
         return user.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals(role.toString()));
+    }
+
+    private boolean userBelongsToAllEntAsAdmin(Long currentUserId) {
+        List<UserEntityRole> entitiesList = userEntityRoleRep.findEntityByUserId(currentUserId);
+
+        return !entitiesList.stream()
+            .anyMatch(ent -> ent.getEntityRole().getName().equals(EntityRoleTypes.ROLE_FARMER.toString()));
     }
 }

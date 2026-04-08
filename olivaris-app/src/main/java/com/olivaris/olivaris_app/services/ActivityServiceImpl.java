@@ -63,6 +63,7 @@ public class ActivityServiceImpl implements ActivityService {
         final Activity act;
 
         if(optionalAct.isEmpty()) {
+            // TODO: check that season == body.getYear()
             act = createNewActivity(userId, enclosureId, entityId, body);
         } else {
             throw new EntityExistsException("La actividad ya existe en el sistema");

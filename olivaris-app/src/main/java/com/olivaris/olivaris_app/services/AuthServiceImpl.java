@@ -105,6 +105,7 @@ public class AuthServiceImpl implements AuthService {
 
         // Create the relationship between entity admin user and the entity
         CreateUserEntity createUserEntity = new CreateUserEntity(
+            savedUser.getEmail(),
             EntityRoleTypes.ROLE_ADMIN, 
             null,
             null,
@@ -119,7 +120,6 @@ public class AuthServiceImpl implements AuthService {
         
         entityService.assignUserToEntity(
             entity.getId(), 
-            savedUser.getId(), 
             createUserEntity
         );
 

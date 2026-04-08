@@ -98,6 +98,7 @@ public class EntityServiceTest {
     @WithUserDetails(value = "canomelero1@gmail.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     public void adminCannotAssignUserToForeignEntity() throws Exception {
        CreateUserEntity assignmentRequest = new CreateUserEntity(
+            farmerUser.getEmail(),
             EntityRoleTypes.ROLE_FARMER,
             true,
             true,
@@ -108,7 +109,6 @@ public class EntityServiceTest {
         assertThatThrownBy(() -> {
             entityService.createAssignment(
                 entityB.getId(),
-                farmerUser.getId(),
                 assignmentRequest
             );
         })
