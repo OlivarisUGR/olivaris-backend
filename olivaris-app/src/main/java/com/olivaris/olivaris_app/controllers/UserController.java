@@ -42,4 +42,9 @@ public class UserController {
     public ResponseEntity<List<UserDto>> getEntityUsers(@PathVariable Long entityId) {
         return userService.getEntityUsers(entityId);
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<UserDto>> getAllUsers() {
+        return userService.getAllUsers();
+    }
 }

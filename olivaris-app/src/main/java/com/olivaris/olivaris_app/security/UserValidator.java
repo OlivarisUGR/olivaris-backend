@@ -55,6 +55,7 @@ public class UserValidator {
         return userBelongToEntity && userHasAdminRole;
     }
 
+    // Only admin user can get all users
     public boolean canGetSystemUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();

@@ -16,4 +16,5 @@ public interface UserService {
     ResponseEntity<UserDto> getByEmail(String email);
     ResponseEntity<UserDto> getCurrentUser();
     ResponseEntity<List<UserDto>> getEntityUsers(Long entityId);
+    ResponseEntity<List<UserDto>> getAllUsers();
 }

@@ -223,4 +223,17 @@ public class UserServiceImpl implements UserService{
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(userListDto);
     }
+
+    @Transactional(readOnly = true)
+    @Override
+    @PreAuthorize("@userValidator.canGetSystemUser()")
+    public ResponseEntity<List<UserDto>> getAllUsers() {
+        List<User> userList = (List<User>) userRep.findAll();
+
+        List<UserDto> userDtoList = userList.stream()
+            .map(UserDto::fromEntity)
+            .toList();
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userDtoList);
+    }
 }
