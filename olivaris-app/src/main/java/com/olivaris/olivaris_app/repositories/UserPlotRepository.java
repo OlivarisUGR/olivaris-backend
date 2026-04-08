@@ -29,9 +29,9 @@ public interface UserPlotRepository extends CrudRepository<UserPlot, Long>{
 
 	@Query("""
 		SELECT up.plotName FROM UserPlot up
-		WHERE up.plot.id = :plotId
+		WHERE up.user.id = :userId AND up.plot.id = :plotId
 	""")
-	String getPlotNameByPlotId(Long plotId);
+	Optional<String> getPlotNameByUserIdAndPlotId(Long userId, Long plotId);
 
 	@Query("""
 		SELECT en.id FROM UserPlot up 

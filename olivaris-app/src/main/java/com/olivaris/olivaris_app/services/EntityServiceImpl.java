@@ -57,10 +57,9 @@ public class EntityServiceImpl implements EntityService {
     @PreAuthorize("@entityValidator.canOperateWithEntity(#entityId)")
     public ResponseEntity<UserEntityDto> createAssignment(
         Long entityId, 
-        Long userId, 
         CreateUserEntity body
     ) {
-        UserEntityDto userEntityDto = this.assignUserToEntity(entityId, userId, body);
+        UserEntityDto userEntityDto = this.assignUserToEntity(entityId, body);
         return ResponseEntity.status(HttpStatus.CREATED).body(userEntityDto);
     }
 
@@ -68,10 +67,9 @@ public class EntityServiceImpl implements EntityService {
     @Override
     public UserEntityDto assignUserToEntity(
         Long entityId, 
-        Long userId, 
         CreateUserEntity body
     ) {
-        User userDb = userRep.findById(userId)
+        User userDb = userRep.findByEmail(body.getEmail())
                         .orElseThrow(() -> new UserNotFoundException(
                             "El usuario no existe en el sistema"
                         ));

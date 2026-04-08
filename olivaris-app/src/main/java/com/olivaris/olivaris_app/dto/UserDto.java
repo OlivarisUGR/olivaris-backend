@@ -24,7 +24,9 @@ public class UserDto {
     private Boolean enabled;
     private List<Role> roles;
     private String nif;
+    private List<EntityDto> entities;
 
+    // To get only the user information
     public static UserDto fromEntity(User user) {
         UserDto dto = new UserDto(
             user.getId(),
@@ -34,7 +36,27 @@ public class UserDto {
             user.getPhone() != null ? user.getPhone() : "",
             user.getEnabled(),
             user.getRoles(),
-            user.getNif()
+            user.getNif(),
+            null
+        );
+        
+        return dto;
+    }
+
+    // To get user information and the entities info that user belongs
+    public static UserDto fromUserWEntities(User user) {
+        UserDto dto = new UserDto(
+            user.getId(),
+            user.getFirstname(),
+            user.getLastname(),
+            user.getEmail(),
+            user.getPhone() != null ? user.getPhone() : "",
+            user.getEnabled(),
+            user.getRoles(),
+            user.getNif(),
+            user.getUserEntity().stream()
+                .map(EntityDto::fromUserEntityRole)
+                .toList()
         );
         
         return dto;

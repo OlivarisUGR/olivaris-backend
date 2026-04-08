@@ -23,7 +23,6 @@ import com.olivaris.olivaris_app.models.CustomUserDetails;
 import com.olivaris.olivaris_app.models.EnabledEntity;
 import com.olivaris.olivaris_app.models.Role;
 import com.olivaris.olivaris_app.models.User;
-import com.olivaris.olivaris_app.models.enums.EntityRoleTypes;
 import com.olivaris.olivaris_app.models.enums.RoleTypes;
 import com.olivaris.olivaris_app.repositories.EntityRepository;
 import com.olivaris.olivaris_app.repositories.RoleRepository;
@@ -208,19 +207,18 @@ public class UserServiceImpl implements UserService{
     // TODO: validation -> can execute it only an user with admin role entity
     @Transactional(readOnly = true)
     @Override
-    public ResponseEntity<List<UserDto>> getEntityFarmerUsers(Long entityId) {
+    public ResponseEntity<List<UserDto>> getEntityUsers(Long entityId) {
         // Get the entity
         EnabledEntity entDb = entityRep.findById(entityId)
             .orElseThrow(() -> new EntityNotFoundException(
                 "La entidad habilitada no existe en el sistema"
             ));
 
-        // Get the users that belong to entity with farmer role
-        List<User> userList = userEntityRoleRep.findUserByEntityId(
-            entityId, EntityRoleTypes.ROLE_FARMER.toString());
+        // Get the users that belong to the entity 
+        List<User> userList = userEntityRoleRep.findUserByEntityId(entityId);
 
         List<UserDto> userListDto = userList.stream()
-            .map(UserDto::fromEntity)
+            .map(UserDto::fromUserWEntities)
             .toList();
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(userListDto);

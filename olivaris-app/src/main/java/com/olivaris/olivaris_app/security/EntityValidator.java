@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import com.olivaris.olivaris_app.models.CustomUserDetails;
 import com.olivaris.olivaris_app.models.EntityRole;
 import com.olivaris.olivaris_app.models.enums.EntityRoleTypes;
-import com.olivaris.olivaris_app.models.enums.RoleTypes;
 import com.olivaris.olivaris_app.repositories.UserEntityRoleRepository;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -19,16 +18,12 @@ public class EntityValidator {
 
     private final UserEntityRoleRepository userEntityRoleRep;
 
+    // Can operate with an entity only if user has admin rol on entity
     public boolean canOperateWithEntity(Long entityId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
 
-        // Admin role can operate 
-        if(userHasRole(userDetails, RoleTypes.ROLE_ADMIN)) {
-            return true;
-        }
-
-        // If current user has basic role, he must have the admin role on the entity
+        // If current user belongs to the entity, he must have the admin role on the entity
         EntityRole entityRole = userEntityRoleRep.getEntityRole(userDetails.getId(), entityId)
                                     .orElseThrow(() -> new EntityNotFoundException(
                                         "El usuario logueado no está asignado a la entidad"
@@ -39,10 +34,5 @@ public class EntityValidator {
         }
         
         return false;
-    }
-
-    private boolean userHasRole(CustomUserDetails userDetails, RoleTypes role) {
-        return userDetails.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals(role.toString()));
     }
 }

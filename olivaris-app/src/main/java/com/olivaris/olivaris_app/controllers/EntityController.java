@@ -34,13 +34,12 @@ public class EntityController {
         return entityServ.create(request);
     }
 
-    @PostMapping("/{entityId}/user/{userId}")
+    @PostMapping("/{entityId}")
     public ResponseEntity<UserEntityDto> assignUser(
         @PathVariable Long entityId,
-        @PathVariable Long userId,
         @Valid @RequestBody CreateUserEntity body
     ) {
-        return entityServ.createAssignment(entityId, userId, body);
+        return entityServ.createAssignment(entityId, body);
     }
 
     @PutMapping("/{entityId}/user/{userId}")

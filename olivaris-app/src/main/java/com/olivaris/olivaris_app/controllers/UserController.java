@@ -39,7 +39,7 @@ public class UserController {
     }
 
     @GetMapping("/all/entity/{entityId}")
-    public ResponseEntity<List<UserDto>> getEntityFarmerUsers(@PathVariable Long entityId) {
-        return userService.getEntityFarmerUsers(entityId);
+    public ResponseEntity<List<UserDto>> getEntityUsers(@PathVariable Long entityId) {
+        return userService.getEntityUsers(entityId);
     }
 }

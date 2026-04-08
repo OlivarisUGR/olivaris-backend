@@ -105,11 +105,13 @@ public class EnabledEntityControllerTest {
         // Mock the service response. I am only trying to execute the controller endpoint
         // and check the return value so the service will be mocked
         EntityDto mockResponse = new EntityDto(
+            1L,
             "los olivos",
             "A1234567B",
             null,
             "losolivos@gmail.com",
-            true
+            true,
+            null
         );
         
         // This is a way to tell "when create from entityServ will be executed with any 

@@ -163,7 +163,10 @@ public class ActivityServiceImpl implements ActivityService {
         List<ActivityDto> enclosuresActDto = enclosuresAct.stream()
             .map(act -> {
                 Long plotId = act.getEnclosure().getPlot().getId();
-                String plotName = userPlotRep.getPlotNameByPlotId(plotId);
+                Long activityUserId = act.getUser().getId();
+                String plotName = userPlotRep
+                    .getPlotNameByUserIdAndPlotId(activityUserId, plotId)
+                    .orElse(null);
                 return ActivityDto.fromEntity(act, plotName);
             })
             .toList();
@@ -180,7 +183,10 @@ public class ActivityServiceImpl implements ActivityService {
         List<ActivityDto> activitiesDto = activitiesDb.stream()
             .map(act -> {
                 Long plotId = act.getEnclosure().getPlot().getId();
-                String plotName = userPlotRep.getPlotNameByPlotId(plotId);
+                Long activityUserId = act.getUser().getId();
+                String plotName = userPlotRep
+                    .getPlotNameByUserIdAndPlotId(activityUserId, plotId)
+                    .orElse(null);
                 return ActivityDto.fromEntity(act, plotName);
             })
             .toList();

@@ -15,13 +15,11 @@ public interface EntityService {
 
     ResponseEntity<UserEntityDto> createAssignment(
         Long entityId,
-        Long userId,
         CreateUserEntity body
     );
 
     UserEntityDto assignUserToEntity(
         Long entityId,
-        Long userId,
         CreateUserEntity body
     );
 

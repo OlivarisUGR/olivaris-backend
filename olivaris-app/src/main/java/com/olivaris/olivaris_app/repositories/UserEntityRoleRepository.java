@@ -93,8 +93,7 @@ public interface UserEntityRoleRepository extends CrudRepository<UserEntityRole,
     @Query("""
         SELECT DISTINCT uer.user 
         FROM UserEntityRole uer
-        WHERE uer.enabledEntity.id = :entityId     
-            AND uer.entityRole.name = :roleName
+        WHERE uer.enabledEntity.id = :entityId    
     """)
-    List<User> findUserByEntityId(Long entityId, String roleName);
+    List<User> findUserByEntityId(Long entityId);
 }
