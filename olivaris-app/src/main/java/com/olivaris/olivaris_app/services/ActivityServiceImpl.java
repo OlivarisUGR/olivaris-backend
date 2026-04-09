@@ -133,9 +133,7 @@ public class ActivityServiceImpl implements ActivityService {
         // If the activity is completed, his status can't be updated
         if(body.getStatus() != null && !actDb.getStatus().equals(ActivityStatus.COMPLETED)) {
             actDb.setStatus(body.getStatus());
-        } else {
-            throw new IllegalArgumentException("No se puede modificar el estado de la actividad");
-        }
+        } 
 
         List<PhytoAct> phytoActListDb = phytoActService.updatePhytoActivities(body.getPhytoActs());
 
