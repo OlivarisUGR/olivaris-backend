@@ -14,7 +14,6 @@ import com.olivaris.olivaris_app.models.CustomUserDetails;
 import com.olivaris.olivaris_app.models.UserEntityRole;
 import com.olivaris.olivaris_app.models.enums.ActivityStatus;
 import com.olivaris.olivaris_app.models.enums.EntityRoleTypes;
-import com.olivaris.olivaris_app.models.enums.RoleTypes;
 import com.olivaris.olivaris_app.repositories.ActivityRepository;
 import com.olivaris.olivaris_app.repositories.UserEntityRoleRepository;
 
@@ -97,51 +96,55 @@ public class ActivityValidator {
             correctSeasonDate(Integer.parseInt(body.getSeason()));
     }
 
-    // TODO: cambiar a la logica de la validacion del crear actividad de arriba
     public boolean canUpdateDeleteAct(Long activityId) {
         // Get the current user logued on system
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails customUser = (CustomUserDetails) auth.getPrincipal();
         Long currentUserId = customUser.getId();
 
-        // Can update an activity:
-        // Admin -> can updates an activity for himself or for any user whose is registered on system
-        if(hasRole(customUser, RoleTypes.ROLE_ADMIN)) {
-            return true;
-        }
-
         Long ownerId = actRep.getUserIdByActId(activityId)
             .orElseThrow(() -> new EntityNotFoundException(
                 "No se ha encontrado la actividad en el sistema"
             ));
-        
-        // Get the activity entity id 
-        Optional<Long> optEntityId = actRep.getEntityIdByActId(activityId);
 
-        // If the owner is the same than the current user and he doesn't belong to an entity or he belongs
-        // to an entity but he doesn't give permission -> can update / delete activity
-        if(currentUserId.equals(ownerId)) {
-            return optEntityId
-                .map(entId -> !userEntRoleRep.givesAllPermToEntity(currentUserId, entId))
-                .orElse(true); 
+        boolean isSelf = currentUserId.equals(ownerId);
+
+        // Can update / delete an activity:
+        // - Himself: user that doesn't belong to an entity or he belong to all entities with admin role
+        // - Other: user belongs to same entity with admin role and the other user gives all permission
+        boolean belongToAnyEntity = userEntRoleRep.userBelongToAnyEntity(currentUserId);
+    
+        if(isSelf) {
+            if(!belongToAnyEntity || (belongToAnyEntity && 
+                userBelongsToAllEntAsAdmin(currentUserId))) {
+                return true;
+            }
         }
 
-        // If the owner is different to the current user, owner gives permissions to entity and the current 
-        // user belong to the same entity with admin role -> can update / delete activity
-        return optEntityId
-            .map(entId -> {
-                boolean currentIsAdminInThisEnt = userEntRoleRep.userRoleOnEnt(
-                    EntityRoleTypes.ROLE_ADMIN.toString(), currentUserId, entId);
-                
-                boolean ownerGavePermsInThisEnt = userEntRoleRep.givesAllPermToEntity(ownerId, entId);
+        // For other user:
+        // Get the activity entity id 
+        Optional<Long> optionalEntity = actRep.getEntityIdByActId(activityId);
 
-                return currentIsAdminInThisEnt && ownerGavePermsInThisEnt;
-            })
-            .orElse(false);
+        if(optionalEntity.isEmpty()) {
+            return false;
+        }
+        
+        Long entityId = optionalEntity.get();
+        boolean hasGivenPerm = userEntRoleRep.givesAllPermToEntity(ownerId, entityId);
+        boolean currentIsAdminOnEnt = userEntRoleRep.userRoleOnEnt(
+            EntityRoleTypes.ROLE_ADMIN.toString(), currentUserId, entityId);
+
+        if(currentIsAdminOnEnt) {
+            return userEntRoleRep.usersBelongToSameEntity(ownerId, currentUserId) && 
+                hasGivenPerm;
+        }
+
+        return false;
     }
-
-    // No pueden verlas -> id distinto al current user, no pertenecen a la misma entidad o pertenecen a la misma 
-    // entidad para el current user no tiene rol admin esa entidad
+ 
+    // Current user can get enclosure acts:
+    // - Himself 
+    // - Other user if he belongs to same entity than the current and current has admin role
     public boolean canGetEnclosuresActivities(Long userId, Long enclosureId, Long entityId) {
         // Get the current user logued on system
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -172,11 +175,6 @@ public class ActivityValidator {
         }
 
         return true;
-    }
-
-    private boolean hasRole(CustomUserDetails user, RoleTypes role) {
-        return user.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals(role.toString()));
     }
 
     private boolean userBelongsToAllEntAsAdmin(Long currentUserId) {

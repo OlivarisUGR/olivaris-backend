@@ -64,6 +64,16 @@ public class UserValidator {
         return userHasRole(userDetails, RoleTypes.ROLE_ADMIN);
     }
 
+    // Current user has the same id than the userId
+    public boolean sameUserThanCurrent(Long userId) {
+        // Get the current user logued on system
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails customUser = (CustomUserDetails) auth.getPrincipal();
+        Long currentUserId = customUser.getId();
+
+        return currentUserId.equals(userId);
+    }
+
     private boolean userHasRole(CustomUserDetails userDetails, RoleTypes role) {
         return userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals(role.toString()));

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.olivaris.olivaris_app.dto.ErrorDto;
+import com.olivaris.olivaris_app.exceptions.ActivityException;
 import com.olivaris.olivaris_app.exceptions.AuthHeaderNotValidException;
 import com.olivaris.olivaris_app.exceptions.ConfirmTokenNotExistsException;
 import com.olivaris.olivaris_app.exceptions.EntityExistsException;
@@ -122,6 +123,17 @@ public class ErrorResponseHandler {
     public ResponseEntity<ErrorDto> entityExists(Exception ex) {
         ErrorDto error = new ErrorDto(
             "Entidad existente en el sistema", 
+            ex.getMessage(), 
+            HttpStatus.BAD_REQUEST.value()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(ActivityException.class)
+    public ResponseEntity<ErrorDto> activity(Exception ex) {
+        ErrorDto error = new ErrorDto(
+            "Error al trabajar con la actividad", 
             ex.getMessage(), 
             HttpStatus.BAD_REQUEST.value()
         );

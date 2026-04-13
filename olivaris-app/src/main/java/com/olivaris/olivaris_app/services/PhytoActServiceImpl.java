@@ -1,5 +1,6 @@
 package com.olivaris.olivaris_app.services;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.olivaris.olivaris_app.dto.CreatePhytoActReq;
 import com.olivaris.olivaris_app.dto.UpdatePhytoActReq;
+import com.olivaris.olivaris_app.exceptions.ActivityException;
 import com.olivaris.olivaris_app.models.Activity;
 import com.olivaris.olivaris_app.models.PhytoAct;
 import com.olivaris.olivaris_app.models.PhytoProduct;
@@ -34,6 +36,12 @@ public class PhytoActServiceImpl implements PhytoActService {
         PhytoProduct productDb = phytoProductRep.findById(body.getPhytoProductId())
             .orElseThrow(() -> new EntityNotFoundException("El producto con ese ID no existe"));
 
+        if(!phytoActDateBetweenNowAndAct(activity.getDate(), body.getApplicationDate())) {
+            throw new ActivityException(
+                "La fecha de la actividad fitosanitaria tiene que estar entre hoy y la fecha de la actividad"
+            );
+        }
+
         // Create the phytosanitary activity and save it
         return PhytoAct.builder()
             .activity(activity)
@@ -53,7 +61,6 @@ public class PhytoActServiceImpl implements PhytoActService {
             .build();
     }
 
-    // TODO: add validations for the user who can do this
     @Transactional
     @Override
     public List<PhytoAct> updatePhytoActivities(List<UpdatePhytoActReq> body) {
@@ -82,5 +89,14 @@ public class PhytoActServiceImpl implements PhytoActService {
         if(body.getArea() != null) phytoActDb.setArea(body.getArea());
 
         return phytoActRep.save(phytoActDb);
+    }
+
+    private boolean phytoActDateBetweenNowAndAct(LocalDate actDate, LocalDate phytoActDate) {
+        if(actDate == null || phytoActDate == null) {
+            return false;
+        }
+
+        LocalDate today = LocalDate.now();
+        return !phytoActDate.isBefore(today) && !phytoActDate.isAfter(actDate);
     }
 }

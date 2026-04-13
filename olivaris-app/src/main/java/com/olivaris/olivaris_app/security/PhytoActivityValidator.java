@@ -15,7 +15,7 @@ public class PhytoActivityValidator {
     public boolean canCreatePhytoAct(Activity activity, CreatePhytoActReq body) {
         if(activity.getStatus().equals(ActivityStatus.COMPLETED) && !hasNecessaryFields(body)) {
             throw new PhytoActArgumentException(
-                "Los parámetros dose, doseUnit, applicatorNif, area y crops son necesarios"
+                "Los parámetros dosis, unidad de dosis, nif del aplicador, area y cultivo son necesarios"
             );
         }
 

@@ -16,6 +16,7 @@ import com.olivaris.olivaris_app.dto.ActivityDto;
 import com.olivaris.olivaris_app.dto.CreateActivityRequest;
 import com.olivaris.olivaris_app.dto.CreatePhytoActReq;
 import com.olivaris.olivaris_app.dto.UpdateActRequest;
+import com.olivaris.olivaris_app.exceptions.ActivityException;
 import com.olivaris.olivaris_app.exceptions.EntityExistsException;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 import com.olivaris.olivaris_app.models.Activity;
@@ -63,7 +64,12 @@ public class ActivityServiceImpl implements ActivityService {
         final Activity act;
 
         if(optionalAct.isEmpty()) {
-            // TODO: check that season == body.getYear()
+            if(!sameYear(body.getSeason(), body.getDate())) {
+                throw new ActivityException(
+                    "La camapaña tiene que coincidir con el año de la actividad"
+                );
+            }
+
             act = createNewActivity(userId, enclosureId, entityId, body);
         } else {
             throw new EntityExistsException("La actividad ya existe en el sistema");
@@ -173,9 +179,9 @@ public class ActivityServiceImpl implements ActivityService {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(enclosuresActDto);
     }
 
-    // TODO: add validation if user exists
     @Transactional(readOnly = true)
     @Override
+    @PreAuthorize("@userValidator.sameUserThanCurrent(#userId)")
     public ResponseEntity<List<ActivityDto>> getUserActivities(Long userId) {
         List<Activity> activitiesDb = actRep.findByUserId(userId);
         
@@ -193,9 +199,9 @@ public class ActivityServiceImpl implements ActivityService {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(activitiesDto);
     }
 
-    // TODO: addd validation for user
     @Transactional
     @Override
+    @PreAuthorize("@activityValidator.canUpdateDeleteAct(#activityId)")
     public ResponseEntity<ActivityCreatedResponse> addNewPhytoActivity(
         Long activityId, 
         CreatePhytoActReq phytoActInfo
@@ -261,5 +267,17 @@ public class ActivityServiceImpl implements ActivityService {
             .build();
 
         return act;
+    }
+
+    private boolean sameYear(String season, LocalDate date) {
+        if(season == null || date == null) {
+            return false;
+        }
+
+        try {
+            return Integer.parseInt(season) == date.getYear();
+        } catch (NumberFormatException ex) {
+            return false;
+        }
     }
 }

@@ -161,7 +161,6 @@ public class UserServiceImpl implements UserService{
         return ResponseEntity.noContent().build();
     }
 
-    // TODO: add a validation (id != null, user corrects)
     @Transactional(readOnly = true)
     @Override
     @PreAuthorize("@userValidator.canGetSystemUser()")
