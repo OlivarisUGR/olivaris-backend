@@ -45,6 +45,11 @@ public class SecurityConfig {
         return source;
     }
 
+    // When an endpoint from controller is executed, Spring will select this security filter chain and execute it.
+    // If this filter chain has other filters (jwtAuthFilter in this case), it will execute the filters in order.
+    // In this case, jwtAuthFilter is a filter inside the filter chain, so it will be executed. When jwt filter returns
+    // a value, the process will returns to this security filter chain and continue with requestMatchers to see if it
+    // needs an authenticated user
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http

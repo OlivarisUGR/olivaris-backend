@@ -166,8 +166,7 @@ public class AuthServiceImpl implements AuthService {
     public ResponseEntity<TokenResponse> login(LoginRequest request) {
         // Do an authentication for the user (info inside the request)
         // SpringBoot will get the user from UserDetailsService and check 
-        // if the email and password are correct. If the user can not be
-        // authenticated, it will throw an exception
+        // if the email and password are correct. 
         Authentication auth = authManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 request.getEmail(), 

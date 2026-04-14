@@ -47,25 +47,25 @@ public class EntityServiceTest {
     @Autowired
     private UserEntityRoleRepository userEntityRoleRepository;
 
-    private User entityAdminUser;
-    private User farmerUser;
+    private User basicUser1;
+    private User basicUser2;
     private EnabledEntity entityA;
     private EnabledEntity entityB;
     private EntityRole entityAdminRole;
 
     @BeforeEach
     public void setUp() {
-        // Create the entity admin user (canomelero1@gmail.com)
-        Role entityAdminSystemRole = roleRepository.findByName("ROLE_ENTITY_ADMIN")
-            .orElseThrow(() -> new RuntimeException("ROLE_ENTITY_ADMIN not found"));
+        // Create the first user (canomelero1@gmail.com)
+        Role entityAdminSystemRole = roleRepository.findByName("ROLE_BASIC")
+            .orElseThrow(() -> new RuntimeException("ROLE_BASIC not found"));
         
-        entityAdminUser = userRepository.save(UserFixtures.createBasicUser(entityAdminSystemRole));
+        basicUser1 = userRepository.save(UserFixtures.createBasicUser(entityAdminSystemRole));
          
-        // Create the farmer user (carlos@gmail.com)
-        Role farmerRole = roleRepository.findByName("ROLE_FARMER")
-            .orElseThrow(() -> new RuntimeException("ROLE_FARMER not found"));
+        // Create the second user (carlos@gmail.com)
+        Role farmerRole = roleRepository.findByName("ROLE_BASIC")
+            .orElseThrow(() -> new RuntimeException("ROLE_BASIC not found"));
         
-        farmerUser = userRepository.save(UserFixtures.createBasicUser2(farmerRole));
+        basicUser2 = userRepository.save(UserFixtures.createBasicUser2(farmerRole));
         
         // Create entityA
         entityA = entityRepository.save(EntityFixtures.createBasicEntity());
@@ -77,9 +77,9 @@ public class EntityServiceTest {
         entityAdminRole = entityRoleRepository.findByName(EntityRoleTypes.ROLE_ADMIN.toString())
             .orElseThrow(() -> new RuntimeException("Entity ROLE_ADMIN not found"));
 
-        // Assign entityAdminUser to entityA
+        // Assign basicUser1 to entityA
         UserEntityRole userEntityRoleA = new UserEntityRole(
-            entityAdminUser,
+            basicUser1,
             entityA,
             entityAdminRole,
             null,
@@ -97,13 +97,15 @@ public class EntityServiceTest {
     @Test
     @WithUserDetails(value = "canomelero1@gmail.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
     public void adminCannotAssignUserToForeignEntity() throws Exception {
-       CreateUserEntity assignmentRequest = new CreateUserEntity(
-            farmerUser.getEmail(),
+        // Logged in as entityA admin, try to assign basicUser2 to entityB 
+        // Create the assignment object between basicUser2 to entityB
+        CreateUserEntity assignmentRequest = new CreateUserEntity(
+            basicUser2.getEmail(),
             EntityRoleTypes.ROLE_FARMER,
             true,
             true,
-            false,
-            false
+            true,
+            true
         );
 
         assertThatThrownBy(() -> {

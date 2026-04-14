@@ -181,7 +181,6 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Transactional(readOnly = true)
     @Override
-    @PreAuthorize("@userValidator.sameUserThanCurrent(#userId)")
     public ResponseEntity<List<ActivityDto>> getUserActivities(Long userId) {
         List<Activity> activitiesDb = actRep.findByUserId(userId);
         

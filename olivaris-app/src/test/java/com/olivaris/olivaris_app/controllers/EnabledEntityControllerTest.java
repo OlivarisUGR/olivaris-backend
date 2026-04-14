@@ -30,7 +30,7 @@ import com.olivaris.olivaris_app.services.JwtService;
 
 import tools.jackson.databind.ObjectMapper;
 
-// This only can load the basic Spring web layer (controllers, basic Spring MVC configuration  and Spring Security), 
+// This only can load the basic Spring web layer (controllers, basic Spring MVC configuration and Spring Security), 
 // but it does not load the service, repository, jpa, database
 @WebMvcTest(EntityController.class)
 // Annotation that creates the MockMvc object to simulate HTTP requests
