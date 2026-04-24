@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: olivaris-db
+    environment:
+      POSTGRES_DB: ${DOCKER_POSTGRES_DB:-olivaris}
+      POSTGRES_USER: ${DOCKER_POSTGRES_USER:-olivaris_user}
+      POSTGRES_PASSWORD: ${DOCKER_POSTGRES_PASSWORD:-olivaris_pass}
+    ports:
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
+    volumes:
+      - olivaris_postgres_data:/var/lib/postgresql/data
+      - ./docker/initdb/olivaris.sql:/docker-entrypoint-initdb.d/01-olivaris.sql:ro
+      - ./docker/initdb/only-basic-postgis.sql:/docker-entrypoint-initdb.d/only-basic-postgis.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DOCKER_POSTGRES_USER:-olivaris_user} -d ${DOCKER_POSTGRES_DB:-olivaris}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: olivaris-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DOCKER_POSTGRES_DB:-olivaris}
+      SPRING_DATASOURCE_USERNAME: ${DOCKER_POSTGRES_USER:-olivaris_user}
+      SPRING_DATASOURCE_PASSWORD: ${DOCKER_POSTGRES_PASSWORD:-olivaris_pass}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      SECURITY_JWT_SECRET_KEY: ${SECURITY_JWT_SECRET_KEY:-replace_with_a_long_random_secret}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-smtp.gmail.com}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    image: olivaris-backend:latest
+
+volumes:
+  olivaris_postgres_data:
