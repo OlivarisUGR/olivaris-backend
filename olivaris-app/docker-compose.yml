@@ -37,7 +37,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "80:80"
     image: olivaris-backend:latest
 
 volumes:
