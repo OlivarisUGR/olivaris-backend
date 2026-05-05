@@ -43,18 +43,15 @@ services:
   nginx:
     image: nginx:1.27-alpine
     container_name: olivaris-nginx
-    restart: unless-stopped
     depends_on:
       - app
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - /home/jorgecm/web/certs/fullchain.pem:/etc/nginx/certs/fullchain.pem:ro
       - /home/jorgecm/web/certs/privkey.pem:/etc/nginx/certs/privkey.pem:ro
     
-
 volumes:
   olivaris_postgres_data:

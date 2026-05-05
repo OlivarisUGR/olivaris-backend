@@ -38,7 +38,6 @@ RUN chown spring:spring /app/app.jar
 
 #Execute the .jar as spring user
 USER spring
-EXPOSE 8080
 
 # Command that will be executed when container starts
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
