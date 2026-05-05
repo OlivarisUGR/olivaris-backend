@@ -27,7 +27,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DOCKER_POSTGRES_DB:-olivaris}
       SPRING_DATASOURCE_USERNAME: ${DOCKER_POSTGRES_USER:-olivaris_user}
       SPRING_DATASOURCE_PASSWORD: ${DOCKER_POSTGRES_PASSWORD:-olivaris_pass}
-      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      APP_BASE_URL: ${APP_BASE_URL:-https://localhost}
       SECURITY_JWT_SECRET_KEY: ${SECURITY_JWT_SECRET_KEY:-replace_with_a_long_random_secret}
       SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-smtp.gmail.com}
       SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
@@ -36,9 +36,25 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "80:8080"
+    expose:
+      - "8080"
     image: olivaris-backend:latest
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: olivaris-nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /home/jorgecm/web/certs/fullchain.pem:/etc/nginx/certs/fullchain.pem:ro
+      - /home/jorgecm/web/certs/privkey.pem:/etc/nginx/certs/privkey.pem:ro
+    
 
 volumes:
   olivaris_postgres_data:
