@@ -27,17 +27,24 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DOCKER_POSTGRES_DB:-olivaris}
       SPRING_DATASOURCE_USERNAME: ${DOCKER_POSTGRES_USER:-olivaris_user}
       SPRING_DATASOURCE_PASSWORD: ${DOCKER_POSTGRES_PASSWORD:-olivaris_pass}
-      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      APP_BASE_URL: ${APP_BASE_URL:-https://olivaris.ugr.es}
       SECURITY_JWT_SECRET_KEY: ${SECURITY_JWT_SECRET_KEY:-replace_with_a_long_random_secret}
       SPRING_MAIL_HOST: ${SPRING_MAIL_HOST:-smtp.gmail.com}
       SPRING_MAIL_PORT: ${SPRING_MAIL_PORT:-587}
       SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME:-}
       SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD:-}
+      SERVER_SSL_KEY_STORE: /certs/keystore.p12
+      SERVER_SSL_KEY_STORE_PASSWORD: ${SERVER_SSL_KEY_STORE_PASSWORD:changeit}
+      SERVER_SSL_KEY_STORE_TYPE: PKCS12
+      SERVER_SSL_KEY_ALIAS: tomcat
+      SERVER_PORT: 8443
     depends_on:
       db:
         condition: service_healthy
     ports:
-      - "80:8080"
+      - "443:8443"
+    volumes:
+      - /home/jorgecm/web/certs:/certs:ro
     image: olivaris-backend:latest
 
 volumes:
