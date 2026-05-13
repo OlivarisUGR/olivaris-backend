@@ -26,6 +26,8 @@ public class PlotDto {
     private String plotNum;
     private String landRegister;
     private Double area;
+    private String province;
+    private String city;
     private GeoJsonPolygonDto polygon;
     private List<Long> enclosuresId;
 
@@ -38,6 +40,8 @@ public class PlotDto {
             plot.getPlotNum(),
             plot.getLandRegister(),
             plot.getArea(),
+            plot.getProvince(),
+            plot.getCity(),
             toGeoJson(plot.getGeometry()),
             (plot.getEnclosures() == null ? Collections.<Enclosure>emptyList() : plot.getEnclosures()).stream()
                 .map(Enclosure::getId)

@@ -20,6 +20,7 @@ import com.olivaris.olivaris_app.dto.CreatePlot;
 import com.olivaris.olivaris_app.dto.PlotDto;
 import com.olivaris.olivaris_app.dto.PlotEnclosureDto;
 import com.olivaris.olivaris_app.dto.SigpacGeoJsonResponse;
+import com.olivaris.olivaris_app.dto.UpdateUserPlot;
 import com.olivaris.olivaris_app.exceptions.UserNotFoundException;
 import com.olivaris.olivaris_app.models.Enclosure;
 import com.olivaris.olivaris_app.models.Plot;
@@ -237,6 +238,33 @@ public class PlotServiceImpl implements PlotService {
         enclosureMap.put("enclosureId", enclosureId);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(enclosureMap);
+    }
+
+    @Override
+    public ResponseEntity<PlotDto> updateUserPlot(
+        Long plotId, 
+        Long userId, 
+        UpdateUserPlot request
+    ) {
+        UserPlot userPlotDb = userPlotRep.findByUserIdAndPlotId(userId, plotId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "No existe relación entre el usuario y la entidad"
+            ));
+
+        if(!request.getPlotName().equals("")) {
+            userPlotDb.setPlotName(request.getPlotName());
+            userPlotRep.save(userPlotDb);
+        }
+        
+        if(!request.getLandRegister().equals("")) {
+            Plot plotDb = userPlotDb.getPlot();
+            plotDb.setLandRegister(request.getLandRegister());
+            plotRep.save(plotDb);
+        }
+
+        PlotDto plotDto = PlotDto.fromEntity(userPlotDb.getPlot());
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(plotDto);
     }
 
     private int getProvinceCode(String province) {

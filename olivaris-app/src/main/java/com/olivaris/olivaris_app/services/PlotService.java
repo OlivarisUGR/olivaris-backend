@@ -9,6 +9,7 @@ import com.olivaris.olivaris_app.dto.CreatePlot;
 // import com.olivaris.olivaris_app.dto.CreateUserPlot;
 import com.olivaris.olivaris_app.dto.PlotDto;
 import com.olivaris.olivaris_app.dto.PlotEnclosureDto;
+import com.olivaris.olivaris_app.dto.UpdateUserPlot;
 import com.olivaris.olivaris_app.models.Plot;
 
 public interface PlotService {
@@ -23,6 +24,11 @@ public interface PlotService {
         String plotName, 
         String enclosureName,
         Long userId
+    );
+    ResponseEntity<PlotDto> updateUserPlot(
+        Long plotId,
+        Long userId,
+        UpdateUserPlot request
     );
     // ResponseEntity<Void> createUserPlot(Long plotId, Long userId, CreateUserPlot request);
 }

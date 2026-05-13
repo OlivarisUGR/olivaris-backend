@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.olivaris.olivaris_app.dto.CreatePlot;
 import com.olivaris.olivaris_app.dto.PlotDto;
 import com.olivaris.olivaris_app.dto.PlotEnclosureDto;
+import com.olivaris.olivaris_app.dto.UpdateUserPlot;
 import com.olivaris.olivaris_app.services.PlotService;
 
 import jakarta.validation.Valid;
@@ -78,6 +80,15 @@ public class PlotController {
         @RequestParam(required = true) Long userId
     ) {
         return plotService.getEnclosureId(plotName, enclosureName, userId);
+    }
+
+    @PutMapping("/{plotId}/user/{userId}")
+    public ResponseEntity<PlotDto> updateUserPlot(
+        @PathVariable Long plotId,
+        @PathVariable Long userId,
+        @Valid @RequestBody UpdateUserPlot request
+    ) {
+        return plotService.updateUserPlot(plotId, userId, request);
     }
     
 }
