@@ -19,6 +19,7 @@ import com.olivaris.olivaris_app.models.EntityRole;
 import com.olivaris.olivaris_app.models.User;
 import com.olivaris.olivaris_app.models.UserEntityRole;
 import com.olivaris.olivaris_app.models.enums.EntityRoleTypes;
+import com.olivaris.olivaris_app.repositories.ActivityRepository;
 import com.olivaris.olivaris_app.repositories.EntityRepository;
 import com.olivaris.olivaris_app.repositories.EntityRoleRepository;
 import com.olivaris.olivaris_app.repositories.UserEntityRoleRepository;
@@ -32,6 +33,7 @@ import lombok.AllArgsConstructor;
 public class EntityServiceImpl implements EntityService {
 
     private final EntityRepository entityRep;
+    private final ActivityRepository activityRep;
     private final UserRepository userRep;
     private final EntityRoleRepository entityRoleRep;
     private final UserEntityRoleRepository userEntityRoleRep;
@@ -213,6 +215,7 @@ public class EntityServiceImpl implements EntityService {
                 "La entidad no existe en el sistema"
             ));
 
+        activityRep.detachEntityFromActivities(entityDB.getId());
         entityRep.delete(entityDB);
 
         return ResponseEntity.noContent().build();

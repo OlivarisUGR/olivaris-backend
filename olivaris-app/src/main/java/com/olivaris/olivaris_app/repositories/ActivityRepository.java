@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -29,6 +30,14 @@ public interface ActivityRepository extends CrudRepository<Activity, Long> {
        WHERE act.id = :activityId   
     """)
     Optional<Long> getEntityIdByActId(Long activityId);
+
+    @Modifying
+    @Query("""
+        UPDATE Activity act
+        SET act.entity = null
+        WHERE act.entity.id = :entityId
+    """)
+    int detachEntityFromActivities(Long entityId);
 
     List<Activity> findByEnclosureIdAndUserId(Long enclosureId, Long userId); 
 
