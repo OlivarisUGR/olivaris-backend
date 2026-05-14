@@ -31,4 +31,5 @@ public interface EntityService {
 
     ResponseEntity<Void> delete(Long entityId, Long userId);
     ResponseEntity<List<EntityDto>> getUserEntities(Long userId);
+    ResponseEntity<List<EntityDto>> getAllEntities();
 }

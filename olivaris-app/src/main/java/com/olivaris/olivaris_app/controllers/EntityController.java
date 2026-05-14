@@ -22,6 +22,7 @@ import com.olivaris.olivaris_app.services.EntityService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
+
 @RestController
 @RequestMapping(value = "/api/entity")
 @AllArgsConstructor
@@ -63,4 +64,10 @@ public class EntityController {
     public ResponseEntity<List<EntityDto>> getUserEntities(@PathVariable Long userId) {
         return entityServ.getUserEntities(userId);
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<EntityDto>> getAllEntities() {
+        return entityServ.getAllEntities();
+    }
+    
 }

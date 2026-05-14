@@ -188,4 +188,17 @@ public class EntityServiceImpl implements EntityService {
         
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(entitiesDto);
     }
+
+    @Transactional(readOnly = true)
+    @Override
+    @PreAuthorize("@entityValidator.canGetAllEntities()")
+    public ResponseEntity<List<EntityDto>> getAllEntities() {
+        List<EnabledEntity> entityList = (List<EnabledEntity>) entityRep.findAll();
+
+        List<EntityDto> entityDtoList = entityList.stream()
+            .map(EntityDto::fromEntity)
+            .toList();
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(entityDtoList);
+    }
 }
