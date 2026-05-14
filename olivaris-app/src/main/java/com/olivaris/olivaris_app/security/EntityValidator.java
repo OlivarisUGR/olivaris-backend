@@ -38,8 +38,7 @@ public class EntityValidator {
         return false;
     }
 
-    // Only a system admin user can create get all entities
-    public boolean canGetAllEntities() {
+    public boolean currentUserIsAdmin() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
 

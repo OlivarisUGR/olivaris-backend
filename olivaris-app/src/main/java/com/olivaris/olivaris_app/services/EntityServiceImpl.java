@@ -38,6 +38,7 @@ public class EntityServiceImpl implements EntityService {
 
     @Transactional
     @Override
+    @PreAuthorize("@entityValidator.currentUserIsAdmin()")
     public ResponseEntity<EntityDto> create(CreateEntity request) {
         EnabledEntity newEntity = new EnabledEntity(
             request.getName(),
@@ -189,9 +190,10 @@ public class EntityServiceImpl implements EntityService {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(entitiesDto);
     }
 
+    // Only a system admin user can create get all entities
     @Transactional(readOnly = true)
     @Override
-    @PreAuthorize("@entityValidator.canGetAllEntities()")
+    @PreAuthorize("@entityValidator.currentUserIsAdmin()")
     public ResponseEntity<List<EntityDto>> getAllEntities() {
         List<EnabledEntity> entityList = (List<EnabledEntity>) entityRep.findAll();
 
@@ -200,5 +202,19 @@ public class EntityServiceImpl implements EntityService {
             .toList();
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(entityDtoList);
+    }
+
+    @Transactional
+    @Override
+    @PreAuthorize("@entityValidator.currentUserIsAdmin()")
+    public ResponseEntity<Void> deleteEntity(Long entityId) {
+        EnabledEntity entityDB = entityRep.findById(entityId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                "La entidad no existe en el sistema"
+            ));
+
+        entityRep.delete(entityDB);
+
+        return ResponseEntity.noContent().build();
     }
 }

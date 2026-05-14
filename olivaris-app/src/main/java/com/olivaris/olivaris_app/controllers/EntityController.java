@@ -35,6 +35,11 @@ public class EntityController {
         return entityServ.create(request);
     }
 
+    @DeleteMapping("/{entityId}")
+    public ResponseEntity<Void> deleteEntity(@PathVariable Long entityId) {
+        return entityServ.deleteEntity(entityId);
+    }
+
     @PostMapping("/{entityId}")
     public ResponseEntity<UserEntityDto> assignUser(
         @PathVariable Long entityId,
