@@ -24,14 +24,17 @@ public class EntityValidator {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
 
+        if(userHasRole(userDetails, RoleTypes.ROLE_ADMIN)) {
+            return true;
+        }
+
         // If current user belongs to the entity, he must have the admin role on the entity
         EntityRole entityRole = userEntityRoleRep.getEntityRole(userDetails.getId(), entityId)
                                     .orElseThrow(() -> new EntityNotFoundException(
                                         "El usuario logueado no está asignado a la entidad"
                                     ));
         
-        if(entityRole.getName().equals(EntityRoleTypes.ROLE_ADMIN.toString()) || 
-            userHasRole(userDetails, RoleTypes.ROLE_ADMIN) ) {
+        if(entityRole.getName().equals(EntityRoleTypes.ROLE_ADMIN.toString())) {
             return true;
         }
         
