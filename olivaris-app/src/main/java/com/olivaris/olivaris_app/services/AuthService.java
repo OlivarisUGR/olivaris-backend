@@ -10,7 +10,7 @@ import com.olivaris.olivaris_app.dto.UserDto;
 public interface AuthService {
     ResponseEntity<UserDto> registerSystemUser(RegisterRequest request);
     ResponseEntity<UserDto> registerEntityAdminUser(RegisterRequest request);
-    ResponseEntity<UserDto> confirm(String confirmToken);
+    UserDto confirm(String confirmToken);
     ResponseEntity<TokenResponse> login(LoginRequest request);
     ResponseEntity<TokenResponse> refresh(String authHeader);
 }

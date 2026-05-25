@@ -135,7 +135,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Transactional
     @Override
-    public ResponseEntity<UserDto> confirm(String confirmToken) {
+    public UserDto confirm(String confirmToken) {
         // Check if the token exists
         User userDb = userRep.findByConfirmationToken(confirmToken)
                             .orElseThrow(() -> new ConfirmTokenNotExistsException(confirmToken));
@@ -158,7 +158,7 @@ public class AuthServiceImpl implements AuthService {
         // Create the user DTO 
         UserDto userDto = UserDto.fromEntity(userDb);
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userDto);
+        return userDto;
     }
 
     @Transactional(readOnly = true)
