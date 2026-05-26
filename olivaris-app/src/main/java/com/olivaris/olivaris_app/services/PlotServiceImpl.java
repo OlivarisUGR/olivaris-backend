@@ -50,6 +50,16 @@ public class PlotServiceImpl implements PlotService {
         String city = request.getCity().trim().toUpperCase();
         String polygonCode = request.getPolygonCode().trim();
         String plotNum = request.getPlotNum().trim();
+        int provinceCode = this.getProvinceCode(province);
+        int cityCode = this.getCityCode(city, String.valueOf(provinceCode));
+        String landRegister = sigpacApiClient.getPlotRefCat(
+            provinceCode,
+            cityCode,
+            0,
+            0,
+            Integer.valueOf(polygonCode),
+            Integer.valueOf(plotNum)
+        );
         
         // Find if the plot is saved on database
         Plot plotDb = new Plot();
@@ -58,9 +68,14 @@ public class PlotServiceImpl implements PlotService {
                                             );
 
         if(optionalPlot.isEmpty()) {
-            plotDb = this.createPlotAndEnclosures(request);
+            plotDb = this.createPlotAndEnclosuresWithResolvedGeoData(request, provinceCode, cityCode, landRegister);
         } else {
             plotDb = optionalPlot.get();
+            
+            if(!landRegister.equals(plotDb.getLandRegister())) {
+                plotDb.setLandRegister(landRegister);
+                plotDb = plotRep.save(plotDb);
+            }
         }
 
         // Assign the plot to the user that execute the method
@@ -95,13 +110,37 @@ public class PlotServiceImpl implements PlotService {
         int provinceCode = this.getProvinceCode(province);
         int cityCode = this.getCityCode(city, String.valueOf(provinceCode));
 
+        String landRegister = sigpacApiClient.getPlotRefCat(
+            provinceCode,
+            cityCode,
+            0,
+            0,
+            Integer.valueOf(polygonCode),
+            Integer.valueOf(plotNum)
+        );
+
+        return this.createPlotAndEnclosuresWithResolvedGeoData(request, provinceCode, cityCode, landRegister);
+    }
+
+    @Transactional
+    private Plot createPlotAndEnclosuresWithResolvedGeoData(
+        CreatePlot request,
+        int provinceCode,
+        int cityCode,
+        String landRegister
+    ) {
+        String polygonCode = request.getPolygonCode().trim();
+        String plotNum = request.getPlotNum().trim();
+        String province = request.getProvince().trim().toUpperCase();
+        String city = request.getCity().trim().toUpperCase();
+
         // Create and save the plot
         Plot newPlot = new Plot(
             String.valueOf(provinceCode),
             String.valueOf(cityCode), 
             polygonCode, 
             plotNum, 
-            request.getLandRegister(),
+            landRegister,
             province,
             city
         );

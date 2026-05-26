@@ -23,7 +23,4 @@ public class CreatePlot {
 
     @NotBlank(message = "{plot.plotNum.notblank}")
     private String plotNum;
-
-    @NotBlank(message = "{plot.landRegister.notblank}")
-    private String landRegister;
 }
