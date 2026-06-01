@@ -1,5 +1,7 @@
 package com.olivaris.olivaris_app.security;
 
+import java.util.List;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -72,6 +74,26 @@ public class UserValidator {
         Long currentUserId = customUser.getId();
 
         return currentUserId.equals(userId);
+    }
+
+    public boolean canAccessUserPlots(Long userId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails customUser = (CustomUserDetails) auth.getPrincipal();
+        Long currentUserId = customUser.getId();
+
+        if(currentUserId.equals(userId) || userHasRole(customUser, RoleTypes.ROLE_ADMIN)) {
+            return true;
+        }
+
+        List<Long> currentUserEntityIds = userEntRoleRep.getEntityIdByUserId(currentUserId);
+
+        return currentUserEntityIds.stream()
+            .filter(entityId -> userEntRoleRep.userRoleOnEnt(
+                EntityRoleTypes.ROLE_ADMIN.toString(),
+                currentUserId,
+                entityId
+            ))
+            .anyMatch(entityId -> userEntRoleRep.userBelongToEntity(userId, entityId));
     }
 
     private boolean userHasRole(CustomUserDetails userDetails, RoleTypes role) {

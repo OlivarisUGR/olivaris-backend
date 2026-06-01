@@ -1,0 +1,106 @@
+@startuml olivaris-backend-class-diagram
+left to right direction
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+hide empty members
+
+title olivaris-app - esquema esencial
+
+package "olivaris-app" {
+  package controllers {
+    class AuthController <<RestController>>
+    class PlotController <<RestController>>
+    class UserController <<RestController>>
+    class EntityController <<RestController>>
+    class ActivityController <<RestController>>
+    class ErrorResponseHandler <<RestControllerAdvice>>
+  }
+
+  package services {
+    interface AuthService
+    interface PlotService
+    interface UserService
+    interface EntityService
+    interface ActivityService
+    interface JwtService
+    interface EnclosureService
+    interface PhytoProductService
+    class CustomUserDetailsService
+  }
+
+  package repositories {
+    interface UserRepository
+    interface PlotRepository
+    interface EntityRepository
+    interface ActivityRepository
+    interface EnclosureRepository
+    interface UserPlotRepository
+    interface UserEntityRoleRepository
+    interface RoleRepository
+    interface EntityRoleRepository
+    interface PhytoProductRepository
+    interface PhytoActRepository
+  }
+
+  package security {
+    class SecurityConfig <<Configuration>>
+    class JwtAuthFilter <<Component>>
+  }
+
+  package clients {
+    class SigpacApiClient <<Component>>
+  }
+
+  package config {
+    class WebClientConfig <<Configuration>>
+    class AppConfig <<Configuration>>
+  }
+
+  package models {
+    class User <<entity>>
+    class Role <<entity>>
+    class Plot <<entity>>
+    class Enclosure <<entity>>
+    class EnabledEntity <<entity>>
+    class Activity <<entity>>
+    class PhytoProduct <<entity>>
+    class PhytoAct <<entity>>
+  }
+}
+
+' capa web
+AuthController --> AuthService
+PlotController --> PlotService
+UserController --> UserService
+EntityController --> EntityService
+ActivityController --> ActivityService
+ErrorResponseHandler ..> AuthController : errores
+
+' servicios principales
+CustomUserDetailsService --> UserRepository
+SecurityConfig --> JwtAuthFilter
+JwtAuthFilter --> JwtService
+JwtAuthFilter --> UserRepository
+WebClientConfig --> SigpacApiClient
+SigpacApiClient --> Plot
+
+' dominio principal
+User "1" --> "0..*" Activity
+User "*" --> "*" Role
+Plot "1" --> "0..*" Enclosure
+Enclosure "1" --> "0..*" Activity
+Activity "1" --> "0..*" PhytoAct
+Activity "0..1" --> "1" EnabledEntity
+PhytoProduct "1" --> "0..*" PhytoAct
+
+note right of User
+Las relaciones N:M de usuario-parcela y usuario-entidad se materializan con tablas puente
+(UserPlot y UserEntityRole), que no se muestran para mantener el diagrama limpio.
+end note
+
+note bottom
+Se omiten DTOs, excepciones, validadores e implementaciones concretas para priorizar la arquitectura esencial.
+end note
+
+@enduml

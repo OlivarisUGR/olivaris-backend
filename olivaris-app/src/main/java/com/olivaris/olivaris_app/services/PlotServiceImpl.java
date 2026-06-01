@@ -241,7 +241,7 @@ public class PlotServiceImpl implements PlotService {
 
     @Transactional(readOnly = true)
     @Override
-    @PreAuthorize("@userValidator.sameUserThanCurrent(#userId)")
+    @PreAuthorize("@userValidator.canAccessUserPlots(#userId)")
     public ResponseEntity<List<PlotEnclosureDto>> getUserPlots(Long userId) {
         User userDb = userRep.findById(userId)
             .orElseThrow(() -> new UserNotFoundException(
@@ -262,6 +262,7 @@ public class PlotServiceImpl implements PlotService {
 
     @Transactional(readOnly = true)
     @Override
+    @PreAuthorize("@userValidator.canAccessUserPlots(#userId)")
     public ResponseEntity<Map<String, Long>> getEnclosureId(
         String plotName, 
         String enclosureName,
