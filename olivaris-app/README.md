@@ -133,4 +133,3 @@ Si quieres correr la aplicación fuera de Docker, necesitas una instancia de Pos
 
 - No uses `localhost` dentro del contenedor de la aplicación para conectar con PostgreSQL; en Docker el host correcto es `db`.
 - Si cambias credenciales, recuerda mantener consistencia entre `application.properties`, `.env` y `docker-compose.yml`.
-- No commitees secretos reales en `.env`.
