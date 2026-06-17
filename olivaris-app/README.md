@@ -2,23 +2,6 @@
 
 Backend de la plataforma Olivaris construido con Spring Boot. Expone la API principal, persiste datos en PostgreSQL/PostGIS, usa Flyway para migraciones, JWT para autenticación y soporte de correo para confirmaciones y notificaciones.
 
-## Tecnologías principales
-
-- Java 21
-- Spring Boot
-- Spring Security con JWT
-- Spring Data JPA
-- Flyway
-- PostgreSQL + PostGIS
-- Spring Mail
-- Docker, Docker Compose y Nginx
-
-## Requisitos
-
-- Java 21
-- Maven 3.9+ o el wrapper incluido
-- Docker y Docker Compose si vas a levantar el entorno completo
-
 ## Configuración necesaria
 
 Antes de ejecutar la aplicación, asegúrate de tener estos archivos correctamente configurados:
